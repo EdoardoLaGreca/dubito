@@ -19,7 +19,7 @@ Since this is a computer adaptation of the game, the turns are chosen randomly.
 There are 5 rules:
 
 - Every player can place from 1 to 4 cards on the table.
-- The card(s) placed by one player should be one rank above the card(s) placed by the previous player, unless the player bluffs. 
+- The card(s) placed by one player should be one rank above the card(s) placed by the previous player, unless the player bluffs.
 - Every card placed on the table is placed with its front facing down, so that nobody else actually knows what card it is.
 - In any moment, any player can doubt of the card(s) placed by the last player.
 - The winner is the first player to end their pack of cards.
@@ -42,6 +42,28 @@ There are 4 players: A, B, C and D. The turns are: A -> B -> C -> D.
 7. A decides to doubt of the cards placed by C.
 8. In this case, the player bluffed, which means that at least one of the cards they placed (one 8) is wrong.
 9. The game continues until one player finishes all the cards.
+
+## Building
+
+Due to the GUI toolkit, you need to install some packages before you can start compiling.
+
+First of all, you need to install the GUI toolkit dependencies (see [this page](https://developer.fyne.io/started/#prerequisites)).
+
+Now, you can build the whole thing (you need to install [Go](https://go.dev/dl/) for this)
+
+```
+go build . -o dubito
+```
+
+this will downlaod all the dependencies and build the repository.
+
+### Running without compiling
+
+Thanks to the Go design, it is possible to run the program wihtout compiling it. However, you still need to download the dependencies mentioned above. Also, this may affect performances, which is not really relevant anyway.
+
+```
+go run .
+```
 
 ## License
 
