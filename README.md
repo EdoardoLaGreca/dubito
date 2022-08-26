@@ -31,7 +31,17 @@ The first player begins by placing card(s) at their choosing on the table from t
 
 ### Game example
 
-(todo)
+There are 4 players: A, B, C and D. The turns are: A -> B -> C -> D.
+
+1. A places 3 covered cards and says "three 5".
+2. B places 2 covered cards and says "two 6".
+3. D decides to doubt of the cards placed by B (not A because it's not the last player).
+4. In this case, the cards are actually two 6 so D takes all five cards in the table and the next turn is B again.
+5. B places 4 covered cards and says "four 7".
+6. C places 1 card and says "one 8".
+7. A decides to doubt of the cards placed by C.
+8. In this case, the player bluffed, which means that at least one of the cards they placed (one 8) is wrong.
+9. The game continues until one player finishes all the cards.
 
 ## License
 
