@@ -70,3 +70,19 @@ func requestMaxPlayers(conn net.Conn) (uint, error) {
 
 	return uint(maxPlayers), nil
 }
+
+func requestCards(conn net.Conn) ([]string, error) {
+	err := sendMsg(conn, "get cards")
+	if err != nil {
+		return nil, err
+	}
+
+	cardsStr, err := recvMsg(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	cards := strings.Split(cardsStr, ",")
+
+	return cards, nil
+}
