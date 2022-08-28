@@ -38,7 +38,10 @@ func closeConn(conn net.Conn) error {
 }
 
 func requestPlayers(conn net.Conn) ([]string, error) {
-	sendMsg(conn, "get players")
+	err := sendMsg(conn, "get players")
+	if err != nil {
+		return nil, err
+	}
 
 	playersCsv, err := recvMsg(conn)
 	if err != nil {
@@ -50,7 +53,10 @@ func requestPlayers(conn net.Conn) ([]string, error) {
 }
 
 func requestMaxPlayers(conn net.Conn) (uint, error) {
-	sendMsg(conn, "get max-players")
+	err := sendMsg(conn, "get max-players")
+	if err != nil {
+		return 0, err
+	}
 
 	maxPlayersStr, err := recvMsg(conn)
 	if err != nil {
