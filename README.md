@@ -65,6 +65,10 @@ Thanks to the Go design, it is possible to run the program wihtout compiling it.
 go run .
 ```
 
+## Credits
+
+Thanks to [**mehrasaur**](https://opengameart.org/users/mehrasaur) from [opengameart.org](https://opengameart.org) for card and deck assets. [Download page](https://opengameart.org/content/playing-card-assets-52-cards-deck-chips).
+
 ## License
 
 ![CC0 logo](https://mirrors.creativecommons.org/presskit/buttons/88x31/svg/cc-zero.svg)
