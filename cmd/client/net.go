@@ -8,16 +8,16 @@ import (
 
 var conn net.Conn
 
+func openConn(addr string, port uint16) (net.Conn, error) {
+	conn, err := net.Dial("tcp", addr+":"+string(port))
+	return conn, err
+}
+
 func initConn() error {
 	c, err := openConn(serverAddress, serverPort)
 	conn = c
 
 	return err
-}
-
-func openConn(addr string, port uint16) (net.Conn, error) {
-	conn, err := net.Dial("tcp", addr+":"+string(port))
-	return conn, err
 }
 
 func sendMsg(conn net.Conn, msg string) error {
