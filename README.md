@@ -59,7 +59,7 @@ this will downlaod all the dependencies and build the repository.
 
 ### Running without compiling
 
-Thanks to the Go design, it is possible to run the program wihtout compiling it. However, you still need to download the dependencies mentioned above. Also, this may affect performances, which is not really relevant anyway.
+Thanks to the Go design, it is possible to run the program without compiling it. However, you still need to download the dependencies mentioned above. Also, this may affect performances, which is not really relevant anyway.
 
 ```
 go run .
