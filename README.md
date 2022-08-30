@@ -55,7 +55,7 @@ Now, you can build the whole thing (you need to install [Go](https://go.dev/dl/)
 go build . -o dubito
 ```
 
-this will downlaod all the dependencies and build the repository.
+this will download all the dependencies and build the repository.
 
 ### Running without compiling
 
