@@ -1,29 +1,61 @@
 package main
 
 import (
+	"fmt"
+	"image"
 	"image/color"
 	"strconv"
+	"strings"
 	"time"
 
-	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+	"github.com/EdoardoLaGreca/dubito/internal/cardutils"
 )
+
+var deckStyle int = 1
 
 func getSettingsContainer(w fyne.Window) *fyne.Container {
 	lblUsername := widget.NewLabel("Username")
-	lblAddress := widget.NewLabel("Server address")
-	lblPort := widget.NewLabel("Server port")
-
 	entUsername := widget.NewEntry()
-	entAddress := widget.NewEntry()
-	entPort := widget.NewEntry()
+	entUsername.OnChanged = func(value string) {
+		username = value
+	}
 
-	return container.New(layout.NewGridLayout(2), lblUsername, entUsername, lblAddress, entAddress, lblPort, entPort)
+	lblAddress := widget.NewLabel("Server address")
+	entAddress := widget.NewEntry()
+	entAddress.OnChanged = func(value string) {
+		serverAddress = value
+	}
+
+	lblPort := widget.NewLabel("Server port")
+	entPort := widget.NewEntry()
+	entPort.OnChanged = func(value string) {
+		port, err := strconv.Atoi(value)
+		if err != nil || port >= 1<<16 {
+			dialog.ShowError(fmt.Errorf("invalid port number"), w)
+		} else {
+			serverPort = uint16(port)
+		}
+	}
+
+	lblDeckStyle := widget.NewLabel("Deck style")
+	cmbDeckStyle := widget.NewSelect(make([]string, 0), func(value string) {
+		styleNumber := strings.Fields(value)[1]
+		deckStyle, _ = strconv.Atoi(styleNumber)
+	})
+
+	for i := 1; i <= 6; i++ {
+		cmbDeckStyle.Options = append(cmbDeckStyle.Options, "Style "+strconv.Itoa(i))
+	}
+
+	cmbDeckStyle.SetSelected("Style " + strconv.Itoa(int(deckStyle)))
+
+	return container.New(layout.NewGridLayout(2), lblUsername, entUsername, lblAddress, entAddress, lblPort, entPort, lblDeckStyle, cmbDeckStyle)
 }
 
 func getWaitingRoomContainer(w fyne.Window, maxPlayers uint) *fyne.Container {
@@ -32,48 +64,79 @@ func getWaitingRoomContainer(w fyne.Window, maxPlayers uint) *fyne.Container {
 	return container.New(layout.NewCenterLayout(), lblJoined)
 }
 
-func getGameContainer(w fyne.Window, players []string) *fyne.Container {
-	cnvPlayers := make([]*canvas.Text, len(players))
+func updateJoinedCount(label *widget.Label, joinedPlayers, maxPlayers uint) {
+	label.SetText(strconv.Itoa(int(joinedPlayers)) + "/" + strconv.Itoa(int(maxPlayers)) + " joined")
+}
+
+func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *fyne.Container {
+	cnvPlayers := make([]fyne.CanvasObject, len(players))
 	for i := range players {
 		cnvPlayers[i] = canvas.NewText(players[i], color.RGBA{R: 200, G: 200, B: 200, A: 255})
 	}
 
-	return container.New(layout.NewVBoxLayout())
+	// Set first player
+	cnvPlayers[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 255, B: 0, A: 255}
+
+	playersCont := container.New(layout.NewHBoxLayout(), cnvPlayers...)
+
+	lastCardPlaced := canvas.NewImageFromImage(image.NewRGBA(image.Rect(0, 0, 390, 606)))
+
+	myCards := make([]fyne.CanvasObject, len(cards))
+
+	for i := range cards {
+		myCards[i] = canvas.NewImageFromImage(image.NewRGBA(image.Rect(0, 0, 390, 606)))
+	}
+
+	return container.New(layout.NewVBoxLayout(), playersCont, lastCardPlaced, myCards...)
 }
 
 func getMenuContainer(w fyne.Window) *fyne.Container {
 	btnNewGame := widget.NewButton("New game", func() {
-		err := initConn()
-		if err != nil {
-			dialog.ShowError(err, w)
-		}
-
-		maxPlayers, err := requestMaxPlayers(conn)
-		if err != nil {
-			dialog.ShowError(err, w)
-		}
-
-		wrCont := getWaitingRoomContainer(w, maxPlayers)
-		w.SetContent(wrCont)
-
-		lblJoined := wrCont.Objects[0]
-
-		var players []string
-
-		// wait until all players joined
-		for len(players) < int(maxPlayers) {
-			requestPlayers(conn)
-			time.Sleep(time.Duration(500 * time.Millisecond))
-		}
-	})
-
-	btnResumeGame := widget.NewButton("Resume game", func() {
-
+		newGame(w)
 	})
 
 	btnSettings := widget.NewButton("Settings", func() {
-
+		getSettingsContainer(w)
 	})
 
-	return container.New(layout.NewVBoxLayout(), btnNewGame, btnResumeGame, btnSettings)
+	return container.New(layout.NewVBoxLayout(), btnNewGame, btnSettings)
+}
+
+func newGame(w fyne.Window) {
+	err := initConn()
+	if err != nil {
+		dialog.ShowError(err, w)
+	}
+
+	maxPlayers, err := requestMaxPlayers(conn)
+	if err != nil {
+		dialog.ShowError(err, w)
+	}
+
+	wrCont := getWaitingRoomContainer(w, maxPlayers)
+	w.SetContent(wrCont)
+
+	lblJoined := wrCont.Objects[0].(*widget.Label)
+
+	var players []string
+
+	// wait until all players joined
+	for len(players) < int(maxPlayers) {
+		var err error
+		players, err = requestPlayers(conn)
+		if err != nil {
+			dialog.ShowError(err, w)
+		}
+
+		updateJoinedCount(lblJoined, uint(len(players)), maxPlayers)
+		time.Sleep(time.Duration(200 * time.Millisecond))
+	}
+
+	cards, err := requestCards(conn)
+	if err != nil {
+		dialog.ShowError(err, w)
+	}
+
+	gameCont := getGameContainer(w, players, cards)
+	w.SetContent(gameCont)
 }
