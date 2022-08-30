@@ -1,4 +1,4 @@
-package main
+package cardutils
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ const (
 type Rank int
 
 const (
-	Ace Rank = 1
+	Ace Rank = iota + 1
 	Two
 	Three
 	Four
@@ -40,7 +40,7 @@ const (
 )
 
 // e.g. "five clubs" or "queen spades"
-func cardByName(name string) (Card, error) {
+func CardByName(name string) (Card, error) {
 	nameSp := strings.Fields(name)
 
 	rankStr := nameSp[0]
