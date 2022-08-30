@@ -4,6 +4,8 @@ import (
 	"net"
 	"strconv"
 	"strings"
+
+	"github.com/EdoardoLaGreca/dubito/internal/cardutils"
 )
 
 var conn net.Conn
@@ -71,7 +73,7 @@ func requestMaxPlayers(conn net.Conn) (uint, error) {
 	return uint(maxPlayers), nil
 }
 
-func requestCards(conn net.Conn) ([]string, error) {
+func requestCards(conn net.Conn) ([]cardutils.Card, error) {
 	err := sendMsg(conn, "get cards")
 	if err != nil {
 		return nil, err
@@ -82,7 +84,16 @@ func requestCards(conn net.Conn) ([]string, error) {
 		return nil, err
 	}
 
-	cards := strings.Split(cardsStr, ",")
+	cardsSp := strings.Split(cardsStr, ",")
+
+	cards := make([]cardutils.Card, len(cardsStr))
+
+	for i := range cardsSp {
+		cards[i], err = cardutils.CardByName(cardsSp[i])
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return cards, nil
 }
