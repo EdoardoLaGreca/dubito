@@ -12,8 +12,9 @@ import (
 )
 
 type player struct {
-	ip   string
-	name string
+	ip    string
+	name  string
+	cards []cardutils.Card
 }
 
 var joinedPlayers []player = make([]player, 0)
@@ -114,6 +115,12 @@ func main() {
 	// add joined players
 	for i := 0; i < maxPlayers; i++ {
 		joinedPlayers = append(joinedPlayers, <-playersChan)
+	}
+
+	// give cards
+	cards := giveCards(len(joinedPlayers))
+	for i := range joinedPlayers {
+		joinedPlayers[i].cards = cards[i]
 	}
 
 	wg.Wait()
