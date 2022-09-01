@@ -39,6 +39,15 @@ func closeConn(conn net.Conn) error {
 	return conn.Close()
 }
 
+func requestJoin(conn net.Conn) error {
+	err := sendMsg(conn, "join "+username)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func requestPlayers(conn net.Conn) ([]string, error) {
 	err := sendMsg(conn, "get players")
 	if err != nil {
