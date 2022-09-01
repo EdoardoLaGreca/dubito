@@ -93,23 +93,25 @@ func main() {
 		panic(err.Error())
 	}
 
-	playersChan := make(chan player, 0)
+	playersChan := make(chan player)
 
 	var wg sync.WaitGroup
 
-	for {
+	// let players connect
+	for i := 0; i < maxPlayers; i++ {
 		conn, err := lis.Accept()
 		if err != nil {
 			log.Println(err.Error())
 		}
 
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			handler(conn, maxPlayers, playersChan)
 			wg.Done()
 		}()
 	}
 
+	// add joined players
 	for i := 0; i < maxPlayers; i++ {
 		joinedPlayers = append(joinedPlayers, <-playersChan)
 	}
