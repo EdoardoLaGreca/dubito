@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -17,4 +18,6 @@ func getArgMaxPlayers() (int, error) {
 			return maxPlayers, nil
 		}
 	}
+
+	return 0, fmt.Errorf("no -m arg found")
 }
