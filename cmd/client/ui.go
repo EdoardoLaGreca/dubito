@@ -87,7 +87,9 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 		myCards[i] = canvas.NewImageFromImage(image.NewRGBA(image.Rect(0, 0, 390, 606)))
 	}
 
-	return container.New(layout.NewVBoxLayout(), playersCont, lastCardPlaced, myCards...)
+	cardsCont := container.New(layout.NewHBoxLayout(), myCards...)
+
+	return container.New(layout.NewVBoxLayout(), playersCont, lastCardPlaced, cardsCont)
 }
 
 func getMenuContainer(w fyne.Window) *fyne.Container {
