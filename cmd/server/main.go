@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"net"
@@ -18,6 +19,16 @@ type player struct {
 }
 
 var joinedPlayers []player = make([]player, 0)
+
+func getPlayerByIP(ip net.Addr) (*player, error) {
+	for _, p := range joinedPlayers {
+		if p.ip == ip.String() {
+			return &p, nil
+		}
+	}
+
+	return &player{}, fmt.Errorf("player not found")
+}
 
 func handler(conn net.Conn, maxPlayers int, players chan player) {
 	b := make([]byte, 0)
