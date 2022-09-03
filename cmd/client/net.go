@@ -11,7 +11,7 @@ import (
 var conn net.Conn
 
 func openConn(addr string, port uint16) (net.Conn, error) {
-	conn, err := net.Dial("tcp", addr+":"+string(port))
+	conn, err := net.Dial("tcp", addr+":"+strconv.Itoa(int(port)))
 	return conn, err
 }
 
