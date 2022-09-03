@@ -45,6 +45,8 @@ There are 4 players: A, B, C and D. The turns are: A -> B -> C -> D.
 
 ## Building
 
+![Go build status](https://github.com/EdoardoLaGreca/dubito/actions/workflows/go.yml/badge.svg)
+
 Due to the GUI toolkit, you need to install some packages before you can start compiling.
 
 First of all, you need to install the GUI toolkit dependencies (see [this page](https://developer.fyne.io/started/#prerequisites)).
