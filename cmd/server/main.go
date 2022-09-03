@@ -33,6 +33,8 @@ func getPlayerByIP(ip net.Addr) (*player, error) {
 func handler(conn net.Conn, maxPlayers int, players chan player) {
 	b := make([]byte, 0)
 	hasJoined := false
+	ip := conn.RemoteAddr()
+	var p *player
 
 	for {
 		_, err := conn.Read(b)
@@ -46,16 +48,32 @@ func handler(conn net.Conn, maxPlayers int, players chan player) {
 		switch fields[0] {
 		case "join":
 			if !hasJoined {
-				players <- player{ip: conn.RemoteAddr().String(), name: fields[1]}
+				players <- player{ip: ip.String(), name: fields[1]}
+				for player, err := getPlayerByIP(ip); err != nil; {
+					p = player
+				}
 			}
 		case "get":
 			if hasJoined {
 				switch fields[1] {
 				case "players":
+					var jpStr string
+					for _, p := range joinedPlayers {
+						jpStr += p.name + ","
+					}
+					jpStr = strings.TrimSuffix(jpStr, ",")
+					conn.Write([]byte(jpStr))
 
 				case "max-players":
 					conn.Write([]byte(strconv.Itoa(maxPlayers)))
+
 				case "cards":
+					var cardsStr string
+					for _, c := range p.cards {
+						cardsStr += cardutils.CardToString(c) + ","
+					}
+					cardsStr = strings.TrimSuffix(cardsStr, ",")
+					conn.Write([]byte(cardsStr))
 
 				default:
 					log.Println("unknown request: \"" + msg + "\"")
