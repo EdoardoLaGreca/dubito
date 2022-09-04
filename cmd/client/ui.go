@@ -25,6 +25,7 @@ func getSettingsContainer(w fyne.Window) *fyne.Container {
 	entUsername.OnChanged = func(value string) {
 		username = value
 	}
+	entUsername.Text = username
 
 	lblAddress := widget.NewLabel("Server address")
 	entAddress := widget.NewEntry()
