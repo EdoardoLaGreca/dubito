@@ -8,6 +8,9 @@ import (
 	"github.com/EdoardoLaGreca/dubito/internal/cardutils"
 )
 
+var serverAddress string = "localhost"
+var serverPort uint16 = 9876
+
 var conn net.Conn
 
 func openConn(addr string, port uint16) (net.Conn, error) {
