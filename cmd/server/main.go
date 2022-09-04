@@ -30,6 +30,10 @@ func getPlayerByConn(conn net.Conn) (*player, error) {
 	return &player{}, fmt.Errorf("player not found")
 }
 
+func fmtPlayerName(p *player) string {
+	return p.name + " (" + p.conn.RemoteAddr().String() + ")"
+}
+
 func handler(conn net.Conn, maxPlayers int, players chan player) {
 	b := make([]byte, 0)
 	hasJoined := false
@@ -76,11 +80,11 @@ func handler(conn net.Conn, maxPlayers int, players chan player) {
 					conn.Write([]byte(cardsStr))
 
 				default:
-					log.Println("unknown request: \"" + msg + "\"")
+					log.Println("invalid request from " + fmtPlayerName(p) + ": \"" + msg + "\"")
 				}
 			}
 		default:
-			log.Println("unknown request: \"" + msg + "\"")
+			log.Println("invalid request from " + fmtPlayerName(p) + ": \"" + msg + "\"")
 		}
 	}
 }
