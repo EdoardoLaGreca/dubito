@@ -13,16 +13,16 @@ import (
 )
 
 type player struct {
-	ip    string
+	conn  net.Conn
 	name  string
 	cards []cardutils.Card
 }
 
 var joinedPlayers []player = make([]player, 0)
 
-func getPlayerByIP(ip net.Addr) (*player, error) {
+func getPlayerByConn(conn net.Conn) (*player, error) {
 	for _, p := range joinedPlayers {
-		if p.ip == ip.String() {
+		if p.conn == conn {
 			return &p, nil
 		}
 	}
@@ -33,7 +33,6 @@ func getPlayerByIP(ip net.Addr) (*player, error) {
 func handler(conn net.Conn, maxPlayers int, players chan player) {
 	b := make([]byte, 0)
 	hasJoined := false
-	ip := conn.RemoteAddr()
 	var p *player
 
 	for {
@@ -48,10 +47,11 @@ func handler(conn net.Conn, maxPlayers int, players chan player) {
 		switch fields[0] {
 		case "join":
 			if !hasJoined {
-				players <- player{ip: ip.String(), name: fields[1]}
-				for player, err := getPlayerByIP(ip); err != nil; {
+				players <- player{conn: conn, name: fields[1]}
+				for player, err := getPlayerByConn(conn); err != nil; {
 					p = player
 				}
+				log.Println("player " + fmtPlayerName(p) + " joined")
 			}
 		case "get":
 			if hasJoined {
