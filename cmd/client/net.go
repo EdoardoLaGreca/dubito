@@ -38,10 +38,6 @@ func recvMsg(conn net.Conn) (string, error) {
 	return string(msg), err
 }
 
-func closeConn(conn net.Conn) error {
-	return conn.Close()
-}
-
 func requestJoin(conn net.Conn) error {
 	err := sendMsg(conn, "join "+username)
 	if err != nil {
