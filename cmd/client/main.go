@@ -5,7 +5,7 @@ import (
 )
 
 var username string = "Player"
-var serverAddress string = ""
+var serverAddress string = "localhost"
 var serverPort uint16 = 9876
 
 func main() {
