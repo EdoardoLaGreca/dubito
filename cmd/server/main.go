@@ -48,6 +48,10 @@ func handler(conn net.Conn, maxPlayers int, players chan player) {
 		msg := string(b)
 		fields := strings.Fields(msg)
 
+		if len(fields) == 0 {
+			continue
+		}
+
 		switch fields[0] {
 		case "join":
 			if !hasJoined {
