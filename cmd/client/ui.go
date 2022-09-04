@@ -113,6 +113,7 @@ func newGame(w fyne.Window) {
 	err := initConn()
 	if err != nil {
 		dialog.ShowError(err, w)
+		return
 	}
 
 	maxPlayers, err := requestMaxPlayers(conn)
