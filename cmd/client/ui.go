@@ -55,7 +55,11 @@ func getSettingsContainer(w fyne.Window) *fyne.Container {
 
 	cmbDeckStyle.SetSelected("Style " + strconv.Itoa(int(deckStyle)))
 
-	return container.New(layout.NewGridLayout(2), lblUsername, entUsername, lblAddress, entAddress, lblPort, entPort, lblDeckStyle, cmbDeckStyle)
+	btnBack := widget.NewButton("Back", func() {
+		w.SetContent(getMenuContainer(w))
+	})
+
+	return container.New(layout.NewGridLayout(2), lblUsername, entUsername, lblAddress, entAddress, lblPort, entPort, lblDeckStyle, cmbDeckStyle, btnBack)
 }
 
 func getWaitingRoomContainer(w fyne.Window, maxPlayers uint) *fyne.Container {
@@ -98,7 +102,7 @@ func getMenuContainer(w fyne.Window) *fyne.Container {
 	})
 
 	btnSettings := widget.NewButton("Settings", func() {
-		getSettingsContainer(w)
+		w.SetContent(getSettingsContainer(w))
 	})
 
 	return container.New(layout.NewVBoxLayout(), btnNewGame, btnSettings)
