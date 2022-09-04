@@ -32,6 +32,7 @@ func getSettingsContainer(w fyne.Window) *fyne.Container {
 	entAddress.OnChanged = func(value string) {
 		serverAddress = value
 	}
+	entAddress.Text = serverAddress
 
 	lblPort := widget.NewLabel("Server port")
 	entPort := widget.NewEntry()
@@ -43,6 +44,7 @@ func getSettingsContainer(w fyne.Window) *fyne.Container {
 			serverPort = uint16(port)
 		}
 	}
+	entPort.Text = strconv.Itoa(int(serverPort))
 
 	lblDeckStyle := widget.NewLabel("Deck style")
 	cmbDeckStyle := widget.NewSelect(make([]string, 0), func(value string) {
