@@ -113,7 +113,17 @@ func giveCards(playersCount int) [][]cardutils.Card {
 }
 
 func main() {
-	lis, err := net.Listen("tcp", "0.0.0.0")
+	lisAddr, err := getListenAddress()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	lisPort, err := getListenPort()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	lis, err := net.Listen("tcp", lisAddr+":"+strconv.Itoa(int(lisPort)))
 	if err != nil {
 		panic(err.Error())
 	}
