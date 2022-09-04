@@ -111,6 +111,14 @@ func getMenuContainer(w fyne.Window) *fyne.Container {
 	return container.New(layout.NewVBoxLayout(), btnNewGame, btnSettings)
 }
 
+// show a dialog containing the error (if not nil) and load the main menu container
+func backToMainMenu(w fyne.Window, err error) {
+	if err != nil {
+		dialog.ShowError(err, w)
+	}
+	w.SetContent(getMenuContainer(w))
+}
+
 func newGame(w fyne.Window) {
 	err := initConn()
 	if err != nil {
@@ -121,6 +129,7 @@ func newGame(w fyne.Window) {
 	maxPlayers, err := requestMaxPlayers(conn)
 	if err != nil {
 		dialog.ShowError(err, w)
+		return
 	}
 
 	wrCont := getWaitingRoomContainer(w, maxPlayers)
@@ -135,7 +144,8 @@ func newGame(w fyne.Window) {
 		var err error
 		players, err = requestPlayers(conn)
 		if err != nil {
-			dialog.ShowError(err, w)
+			backToMainMenu(w, err)
+			return
 		}
 
 		updateJoinedCount(lblJoined, uint(len(players)), maxPlayers)
@@ -144,7 +154,8 @@ func newGame(w fyne.Window) {
 
 	cards, err := requestCards(conn)
 	if err != nil {
-		dialog.ShowError(err, w)
+		backToMainMenu(w, err)
+		return
 	}
 
 	gameCont := getGameContainer(w, players, cards)
