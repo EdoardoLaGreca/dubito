@@ -35,8 +35,8 @@ func fmtPlayerName(p *player) string {
 	return p.name + " (" + p.conn.RemoteAddr().String() + ")"
 }
 
-func handler(conn net.Conn, maxPlayers int, players chan player) {
-	b := make([]byte, 0)
+func handler(conn net.Conn, maxPlayers int, players chan<- player) {
+	log.Println("a player connected (IP: " + conn.RemoteAddr().String() + ")")
 	hasJoined := false
 	var p *player
 
@@ -56,8 +56,17 @@ func handler(conn net.Conn, maxPlayers int, players chan player) {
 		case "join":
 			if !hasJoined {
 				players <- player{conn: conn, name: fields[1]}
-				for player, err := getPlayerByConn(conn); err != nil; {
-					p = player
+
+				// wait for the player to be added to joinedPlayers
+				for {
+					foundPlayer, err := getPlayerByConn(conn)
+					if err != nil {
+						continue
+					}
+
+					p = foundPlayer
+					hasJoined = true
+					break
 				}
 				log.Println("player " + fmtPlayerName(p) + " joined")
 			}
@@ -145,6 +154,14 @@ func main() {
 
 	var wg sync.WaitGroup
 
+	// create goroutine to append new players to joinedPlayers
+	go func(players <-chan player) {
+		// add joined players
+		for i := 0; i < maxPlayers; i++ {
+			joinedPlayers = append(joinedPlayers, <-players)
+		}
+	}(playersChan)
+
 	// let players connect
 	for i := 0; i < maxPlayers; i++ {
 		conn, err := lis.Accept()
@@ -157,11 +174,6 @@ func main() {
 			handler(conn, maxPlayers, playersChan)
 			wg.Done()
 		}()
-	}
-
-	// add joined players
-	for i := 0; i < maxPlayers; i++ {
-		joinedPlayers = append(joinedPlayers, <-playersChan)
 	}
 
 	// give cards
