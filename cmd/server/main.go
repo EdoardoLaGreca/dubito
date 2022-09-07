@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/EdoardoLaGreca/dubito/internal/cardutils"
+	"github.com/EdoardoLaGreca/dubito/internal/netutils"
 )
 
 type player struct {
@@ -40,12 +41,11 @@ func handler(conn net.Conn, maxPlayers int, players chan player) {
 	var p *player
 
 	for {
-		_, err := conn.Read(b)
+		msg, err := netutils.RecvMsg(conn)
 		if err != nil {
 			log.Println(err.Error())
 		}
 
-		msg := string(b)
 		fields := strings.Fields(msg)
 
 		if len(fields) == 0 {
@@ -70,10 +70,10 @@ func handler(conn net.Conn, maxPlayers int, players chan player) {
 						jpStr += p.name + ","
 					}
 					jpStr = strings.TrimSuffix(jpStr, ",")
-					conn.Write([]byte(jpStr))
+					netutils.SendMsg(conn, jpStr)
 
 				case "max-players":
-					conn.Write([]byte(strconv.Itoa(maxPlayers)))
+					netutils.SendMsg(conn, strconv.Itoa(maxPlayers))
 
 				case "cards":
 					var cardsStr string
@@ -81,7 +81,7 @@ func handler(conn net.Conn, maxPlayers int, players chan player) {
 						cardsStr += cardutils.CardToString(c) + ","
 					}
 					cardsStr = strings.TrimSuffix(cardsStr, ",")
-					conn.Write([]byte(cardsStr))
+					netutils.SendMsg(conn, cardsStr)
 
 				default:
 					log.Println("invalid request from " + fmtPlayerName(p) + ": \"" + msg + "\"")

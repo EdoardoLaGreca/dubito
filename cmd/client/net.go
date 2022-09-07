@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/EdoardoLaGreca/dubito/internal/cardutils"
+	"github.com/EdoardoLaGreca/dubito/internal/netutils"
 )
 
 var serverAddress string = "localhost"
@@ -20,26 +21,17 @@ func openConn(addr string, port uint16) (net.Conn, error) {
 
 func initConn() error {
 	c, err := openConn(serverAddress, serverPort)
+	if err != nil {
+		return err
+	}
+
 	conn = c
 
-	return err
-}
-
-func sendMsg(conn net.Conn, msg string) error {
-	_, err := conn.Write([]byte(msg))
-
-	return err
-}
-
-func recvMsg(conn net.Conn) (string, error) {
-	msg := make([]byte, 0)
-	_, err := conn.Read(msg)
-
-	return string(msg), err
+	return nil
 }
 
 func requestJoin(conn net.Conn) error {
-	err := sendMsg(conn, "join "+username)
+	err := netutils.SendMsg(conn, "join "+username)
 	if err != nil {
 		return err
 	}
@@ -48,12 +40,12 @@ func requestJoin(conn net.Conn) error {
 }
 
 func requestPlayers(conn net.Conn) ([]string, error) {
-	err := sendMsg(conn, "get players")
+	err := netutils.SendMsg(conn, "get players")
 	if err != nil {
 		return nil, err
 	}
 
-	playersCsv, err := recvMsg(conn)
+	playersCsv, err := netutils.RecvMsg(conn)
 	if err != nil {
 		return nil, err
 	}
@@ -63,12 +55,12 @@ func requestPlayers(conn net.Conn) ([]string, error) {
 }
 
 func requestMaxPlayers(conn net.Conn) (uint, error) {
-	err := sendMsg(conn, "get max-players")
+	err := netutils.SendMsg(conn, "get max-players")
 	if err != nil {
 		return 0, err
 	}
 
-	maxPlayersStr, err := recvMsg(conn)
+	maxPlayersStr, err := netutils.RecvMsg(conn)
 	if err != nil {
 		return 0, err
 	}
@@ -82,12 +74,12 @@ func requestMaxPlayers(conn net.Conn) (uint, error) {
 }
 
 func requestCards(conn net.Conn) ([]cardutils.Card, error) {
-	err := sendMsg(conn, "get cards")
+	err := netutils.SendMsg(conn, "get cards")
 	if err != nil {
 		return nil, err
 	}
 
-	cardsStr, err := recvMsg(conn)
+	cardsStr, err := netutils.RecvMsg(conn)
 	if err != nil {
 		return nil, err
 	}
@@ -107,5 +99,5 @@ func requestCards(conn net.Conn) ([]cardutils.Card, error) {
 }
 
 func requestLeave() error {
-	return sendMsg(conn, "leave")
+	return netutils.SendMsg(conn, "leave")
 }
