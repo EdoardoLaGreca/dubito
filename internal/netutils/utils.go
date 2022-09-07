@@ -22,7 +22,7 @@ func RecvMsg(conn net.Conn) (string, error) {
 		for {
 			n, err := conn.Read(buf)
 			if err != nil {
-				return "", nil
+				return "", err
 			}
 
 			// beginning of a new message
