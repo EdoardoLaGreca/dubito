@@ -14,6 +14,7 @@ var serverPort uint16 = 9876
 
 var conn net.Conn
 
+// do not use openConn if you call initConn
 func openConn(addr string, port uint16) (net.Conn, error) {
 	conn, err := net.Dial("tcp", addr+":"+strconv.Itoa(int(port)))
 	return conn, err
