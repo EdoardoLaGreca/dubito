@@ -6,21 +6,21 @@ type NetQueueItem struct {
 
 type NetQueue struct {
 	// the first item is the first in the queue aka. the one with the most priority
-	queue []NetQueueItem
+	queue []*NetQueueItem
 }
 
 // NewQueue creates a new NetQueue instance.
 func NewQueue() NetQueue {
 	nq := NetQueue{}
 
-	nq.queue = make([]NetQueueItem, 0)
+	nq.queue = make([]*NetQueueItem, 0)
 
 	return nq
 }
 
 // NewItem creates a new NetQueueItem instance.
-func NewItem(content []byte) NetQueueItem {
-	nqi := NetQueueItem{}
+func NewItem(content []byte) *NetQueueItem {
+	nqi := new(NetQueueItem)
 
 	nqi.content = content
 
@@ -32,12 +32,16 @@ func (nqi NetQueueItem) Content() []byte {
 }
 
 // AddItem adds an item as last in the queue.
-func (nq *NetQueue) AddItem(item NetQueueItem) {
+func (nq *NetQueue) AddItem(item *NetQueueItem) {
 	nq.queue = append(nq.queue, item)
 }
 
 // Next pops the first item and returns it.
-func (nq *NetQueue) Next() NetQueueItem {
+func (nq *NetQueue) Next() *NetQueueItem {
+	if nq.IsEmpty() {
+		return nil
+	}
+
 	// get the first item
 	item := nq.queue[0]
 
