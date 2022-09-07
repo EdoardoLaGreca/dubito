@@ -14,7 +14,7 @@ The cards are divided among the players in equal parts. The remaining cards, if 
 
 Since this is a computer adaptation of the game, the turns are chosen randomly.
 
-### How to play
+### How to play (official way)
 
 There are 5 rules:
 
@@ -43,28 +43,30 @@ There are 4 players: A, B, C and D. The turns are: A -> B -> C -> D.
 8. In this case, the player bluffed, which means that at least one of the cards they placed (one 8) is wrong.
 9. The game continues until one player finishes all the cards.
 
+### How to play (fun way)
+
+[todo]
+
 ## Building
 
 ![Go build status](https://github.com/EdoardoLaGreca/dubito/actions/workflows/go.yml/badge.svg)
 
-Due to the GUI toolkit, you need to install some packages before you can start compiling.
+Due to the GUI toolkit in use, **before compiling the client** you need to install some dependencies, see [this page](https://developer.fyne.io/started/#prerequisites). These dependencies are not managed by Go and are required to statically link the Go object code with the native GUI libraries, which are platform-dependent.
 
-First of all, you need to install the GUI toolkit dependencies (see [this page](https://developer.fyne.io/started/#prerequisites)).
-
-Now, you can build the whole thing (you need to install [Go](https://go.dev/dl/) for this)
+You can build the whole thing using the commands below (you need to install [Go](https://go.dev/dl/) for this). This will download all the Go module dependencies and build the repository.
 
 ```
-go build . -o dubito
+go build ./cmd/client -o dubito
+go build ./cmd/server -o dubito-server
 ```
-
-this will download all the dependencies and build the repository.
 
 ### Running without compiling
 
 Thanks to the Go design, it is possible to run the program without compiling it. However, you still need to download the dependencies mentioned above. Also, this may affect performances, which is not really relevant anyway.
 
 ```
-go run .
+go run ./cmd/client
+go run ./cmd/server
 ```
 
 ## Credits
