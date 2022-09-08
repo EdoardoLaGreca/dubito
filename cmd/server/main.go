@@ -42,6 +42,7 @@ func handler(conn net.Conn, maxPlayers int, players chan<- *player) {
 	hasJoined := false
 	var p *player // read this only if the player has joined
 
+msgLoop:
 	for {
 		msg, err := netutils.RecvMsg(conn)
 		if err != nil {
@@ -108,6 +109,11 @@ func handler(conn net.Conn, maxPlayers int, players chan<- *player) {
 				default:
 					log.Println("invalid request from " + fmtPlayerName(p) + ": \"" + msg + "\"")
 				}
+			}
+		case "leave":
+			if hasJoined {
+				log.Println("player " + fmtPlayerName(p) + " left")
+				break msgLoop
 			}
 		default:
 			log.Println("invalid request from " + fmtPlayerName(p) + ": \"" + msg + "\"")
