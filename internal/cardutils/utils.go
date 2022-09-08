@@ -131,11 +131,11 @@ func CardToString(c Card) (name string) {
 	case Clubs:
 		name += "clubs"
 	case Diamonds:
-		name = "diamonds"
+		name += "diamonds"
 	case Hearts:
-		name = "hearts"
+		name += "hearts"
 	case Spades:
-		name = "spades"
+		name += "spades"
 	}
 
 	return
