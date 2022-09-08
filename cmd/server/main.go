@@ -238,10 +238,6 @@ func main() {
 
 	<-maxPlayersJoinedChan
 
-	// wait for all the players to join
-	for len(joinedPlayers) < maxPlayers {
-		time.Sleep(time.Millisecond * 100)
-	}
 	log.Println("all the players joined the game")
 
 	// give cards
