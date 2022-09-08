@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/EdoardoLaGreca/dubito/internal/cardutils"
 	"github.com/EdoardoLaGreca/dubito/internal/netutils"
@@ -19,12 +21,12 @@ type player struct {
 	cards []cardutils.Card
 }
 
-var joinedPlayers []player = make([]player, 0)
+var joinedPlayers []*player = make([]*player, 0)
 
 func getPlayerByConn(conn net.Conn) (*player, error) {
 	for _, p := range joinedPlayers {
 		if p.conn == conn {
-			return &p, nil
+			return p, nil
 		}
 	}
 
@@ -35,16 +37,24 @@ func fmtPlayerName(p *player) string {
 	return p.name + " (" + p.conn.RemoteAddr().String() + ")"
 }
 
-func handler(conn net.Conn, maxPlayers int, players chan<- player) {
+func handler(conn net.Conn, maxPlayers int, players chan<- *player) {
 	log.Println("a player connected (IP: " + conn.RemoteAddr().String() + ")")
 	hasJoined := false
-	var p *player
+	var p *player // read this only if the player has joined
 
 	for {
 		msg, err := netutils.RecvMsg(conn)
 		if err != nil {
-			log.Println(err.Error())
+			if err == io.EOF {
+				// connection closed
+				log.Println("the connection to " + conn.RemoteAddr().String() + " has been closed")
+			} else {
+				log.Println("an error occurred while reading a message: " + err.Error())
+			}
+			break
 		}
+
+		log.Println(conn.RemoteAddr().String() + " made a request: \"" + msg + "\"")
 
 		fields := strings.Fields(msg)
 
@@ -55,7 +65,10 @@ func handler(conn net.Conn, maxPlayers int, players chan<- player) {
 		switch fields[0] {
 		case "join":
 			if !hasJoined {
-				players <- player{conn: conn, name: fields[1]}
+				tmpPlayer := new(player)
+				tmpPlayer.conn = conn
+				tmpPlayer.name = fields[1]
+				players <- tmpPlayer
 
 				// wait for the player to be added to joinedPlayers
 				for {
@@ -119,6 +132,7 @@ func giveCards(playersCount int) [][]cardutils.Card {
 				if !givenCards[card] {
 					playerCards[j] = card
 					givenCards[card] = true
+					break
 				}
 			}
 		}
@@ -150,12 +164,12 @@ func main() {
 		panic(err.Error())
 	}
 
-	playersChan := make(chan player)
+	playersChan := make(chan *player)
 
 	var wg sync.WaitGroup
 
 	// create goroutine to append new players to joinedPlayers
-	go func(players <-chan player) {
+	go func(players <-chan *player) {
 		// add joined players
 		for i := 0; i < maxPlayers; i++ {
 			joinedPlayers = append(joinedPlayers, <-players)
@@ -176,10 +190,18 @@ func main() {
 		}()
 	}
 
+	log.Println("waiting for all the players to join...")
+	// wait for all the players to join
+	for len(joinedPlayers) < maxPlayers {
+		time.Sleep(time.Millisecond * 100)
+	}
+	log.Println("all the players joined the game")
+
 	// give cards
 	cards := giveCards(len(joinedPlayers))
 	for i := range joinedPlayers {
 		joinedPlayers[i].cards = cards[i]
+		log.Println("cards have been assigned to " + joinedPlayers[i].name)
 	}
 
 	wg.Wait()
