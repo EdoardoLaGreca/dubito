@@ -13,7 +13,7 @@ import (
 //go:embed cards decks
 var assets embed.FS
 
-func getCardAsset(c cardutils.Card) (image.Image, error) {
+func GetCardAsset(c cardutils.Card) (image.Image, error) {
 	filename := "card_"
 
 	switch c.Suit {
@@ -55,7 +55,7 @@ func getCardAsset(c cardutils.Card) (image.Image, error) {
 	return img, nil
 }
 
-func getDeckAsset(style int) (image.Image, error) {
+func GetDeckAsset(style int) (image.Image, error) {
 	content, err := assets.ReadFile("decks/deck_" + strconv.Itoa(style) + ".png")
 	if err != nil {
 		return nil, err
