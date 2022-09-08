@@ -54,6 +54,8 @@ func fmtPlayerName(p *player) string {
 }
 
 func handler(conn net.Conn, maxPlayers int, players chan<- *player) {
+	defer removePlayerByConn(conn)
+
 	log.Println("a player connected (IP: " + conn.RemoteAddr().String() + ")")
 	hasJoined := false
 	var p *player // read this only if the player has joined
@@ -135,7 +137,6 @@ msgLoop:
 			}
 		case "leave":
 			if hasJoined {
-				removePlayerByConn(conn)
 				log.Println("player " + fmtPlayerName(p) + " left")
 				break msgLoop
 			}
