@@ -178,6 +178,7 @@ func main() {
 	}
 
 	playersChan := make(chan *player)
+	maxPlayersJoinedChan := make(chan struct{})
 
 	var wg sync.WaitGroup
 
@@ -189,21 +190,34 @@ func main() {
 		}
 	}(playersChan)
 
-	// let players connect
-	for {
-		conn, err := lis.Accept()
-		if err != nil {
-			log.Println(err.Error())
-		}
-
-		wg.Add(1)
-		go func() {
-			handler(conn, maxPlayers, playersChan)
-			wg.Done()
-		}()
-	}
-
 	log.Println("waiting for all the players to join...")
+
+	// let players connect
+	go func() {
+		for {
+			conn, err := lis.Accept()
+			if err != nil {
+				log.Println(err.Error())
+			}
+
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				handler(conn, maxPlayers, playersChan)
+			}()
+		}
+	}()
+
+	// check if all the players joined
+	go func() {
+		for len(joinedPlayers) < maxPlayers {
+			time.Sleep(time.Millisecond * 100)
+		}
+		<-maxPlayersJoinedChan
+	}()
+
+	<-maxPlayersJoinedChan
+
 	// wait for all the players to join
 	for len(joinedPlayers) < maxPlayers {
 		time.Sleep(time.Millisecond * 100)
