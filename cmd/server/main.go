@@ -227,10 +227,12 @@ func main() {
 
 	// check if all the players joined
 	go func() {
-		for len(joinedPlayers) < maxPlayers {
-			time.Sleep(time.Millisecond * 100)
+		for {
+			for len(joinedPlayers) < maxPlayers {
+				time.Sleep(time.Millisecond * 100)
+			}
+			<-maxPlayersJoinedChan
 		}
-		<-maxPlayersJoinedChan
 	}()
 
 	<-maxPlayersJoinedChan
