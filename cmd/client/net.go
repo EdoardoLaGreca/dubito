@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -35,6 +36,15 @@ func requestJoin(conn net.Conn) error {
 	err := netutils.SendMsg(conn, "join "+username)
 	if err != nil {
 		return err
+	}
+
+	resp, err := netutils.RecvMsg(conn)
+	if err != nil {
+		return err
+	}
+
+	if resp != "ok" {
+		return fmt.Errorf(resp)
 	}
 
 	return nil

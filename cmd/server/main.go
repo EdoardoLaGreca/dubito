@@ -66,23 +66,29 @@ msgLoop:
 		switch fields[0] {
 		case "join":
 			if !hasJoined {
-				tmpPlayer := new(player)
-				tmpPlayer.conn = conn
-				tmpPlayer.name = fields[1]
-				players <- tmpPlayer
+				if len(joinedPlayers) == maxPlayers {
+					netutils.SendMsg(conn, "the lobby is full")
+				} else {
+					tmpPlayer := new(player)
+					tmpPlayer.conn = conn
+					tmpPlayer.name = fields[1]
+					players <- tmpPlayer
 
-				// wait for the player to be added to joinedPlayers
-				for {
-					foundPlayer, err := getPlayerByConn(conn)
-					if err != nil {
-						continue
+					// wait for the player to be added to joinedPlayers
+					for {
+						foundPlayer, err := getPlayerByConn(conn)
+						if err != nil {
+							continue
+						}
+
+						p = foundPlayer
+						hasJoined = true
+						break
 					}
+					netutils.SendMsg(conn, "ok")
 
-					p = foundPlayer
-					hasJoined = true
-					break
+					log.Println("player " + fmtPlayerName(p) + " joined")
 				}
-				log.Println("player " + fmtPlayerName(p) + " joined")
 			}
 		case "get":
 			if hasJoined {
@@ -183,7 +189,7 @@ func main() {
 	}(playersChan)
 
 	// let players connect
-	for i := 0; i < maxPlayers; i++ {
+	for {
 		conn, err := lis.Accept()
 		if err != nil {
 			log.Println(err.Error())
