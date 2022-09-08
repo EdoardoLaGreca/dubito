@@ -14,6 +14,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+	"github.com/EdoardoLaGreca/dubito/assets"
 	"github.com/EdoardoLaGreca/dubito/internal/cardutils"
 )
 
@@ -90,8 +91,14 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 
 	myCards := make([]fyne.CanvasObject, len(cards))
 
-	for i := range cards {
-		myCards[i] = canvas.NewImageFromImage(image.NewRGBA(image.Rect(0, 0, 390, 606)))
+	for i, c := range cards {
+		img, err := assets.GetCardAsset(c)
+		if err != nil {
+			dialog.ShowError(err, w)
+			break
+		}
+
+		myCards[i] = canvas.NewImageFromImage(img)
 	}
 
 	cardsCont := container.New(layout.NewHBoxLayout(), myCards...)
