@@ -22,7 +22,6 @@ type player struct {
 }
 
 var joinedPlayers []*player = make([]*player, 0)
-var cardsGiven chan struct{} = make(chan struct{})
 
 func getPlayerByConn(conn net.Conn) (*player, error) {
 	for _, p := range joinedPlayers {
@@ -125,7 +124,11 @@ msgLoop:
 					netutils.SendMsg(conn, strconv.Itoa(maxPlayers))
 
 				case "cards":
-					<-cardsGiven
+					for len(p.cards) == 0 {
+						// wait to get cards
+						time.Sleep(time.Millisecond * 100)
+					}
+
 					var cardsStr string
 					for _, c := range p.cards {
 						cardsStr += cardutils.CardToString(c) + ","
@@ -248,7 +251,6 @@ func main() {
 		joinedPlayers[i].cards = cards[i]
 		log.Println("cards have been assigned to " + joinedPlayers[i].name)
 	}
-	cardsGiven <- struct{}{}
 
 	wg.Wait()
 }
