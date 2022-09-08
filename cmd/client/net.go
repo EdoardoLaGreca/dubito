@@ -100,5 +100,8 @@ func requestCards(conn net.Conn) ([]cardutils.Card, error) {
 }
 
 func requestLeave() error {
-	return netutils.SendMsg(conn, "leave")
+	err := netutils.SendMsg(conn, "leave")
+	conn.Close()
+
+	return err
 }
