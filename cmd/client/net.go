@@ -87,7 +87,7 @@ func requestCards(conn net.Conn) ([]cardutils.Card, error) {
 
 	cardsSp := strings.Split(cardsStr, ",")
 
-	cards := make([]cardutils.Card, len(cardsStr))
+	cards := make([]cardutils.Card, len(cardsSp))
 
 	for i := range cardsSp {
 		cards[i], err = cardutils.CardByName(cardsSp[i])
