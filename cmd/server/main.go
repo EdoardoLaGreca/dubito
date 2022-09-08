@@ -33,6 +33,22 @@ func getPlayerByConn(conn net.Conn) (*player, error) {
 	return &player{}, fmt.Errorf("player not found")
 }
 
+// remove player if found, do nothing otherwise
+func removePlayerByConn(conn net.Conn) {
+	index := -1
+
+	for i, p := range joinedPlayers {
+		if p.conn == conn {
+			index = i
+		}
+	}
+
+	if index != -1 {
+		// remove player
+		joinedPlayers = append(joinedPlayers[:index], joinedPlayers[index+1:]...)
+	}
+}
+
 func fmtPlayerName(p *player) string {
 	return p.name + " (" + p.conn.RemoteAddr().String() + ")"
 }
@@ -119,6 +135,7 @@ msgLoop:
 			}
 		case "leave":
 			if hasJoined {
+				removePlayerByConn(conn)
 				log.Println("player " + fmtPlayerName(p) + " left")
 				break msgLoop
 			}
