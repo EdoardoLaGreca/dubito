@@ -68,6 +68,7 @@ msgLoop:
 			if !hasJoined {
 				if len(joinedPlayers) == maxPlayers {
 					netutils.SendMsg(conn, "the lobby is full")
+					break msgLoop
 				} else {
 					tmpPlayer := new(player)
 					tmpPlayer.conn = conn
