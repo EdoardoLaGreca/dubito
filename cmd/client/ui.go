@@ -98,12 +98,21 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 			break
 		}
 
-		myCards[i] = canvas.NewImageFromImage(img)
+		canvasImage := canvas.NewImageFromImage(img)
+		canvasImage.FillMode = canvas.ImageFillContain
+
+		myCards[i] = canvasImage
 	}
 
-	cardsCont := container.New(layout.NewHBoxLayout(), myCards...)
+	// use a grid layout of 1 row to divide the horizontal space in equal parts
+	cardsCont := container.New(layout.NewGridWrapLayout(fyne.NewSize(40.0, 80.0)), myCards...)
 
-	return container.New(layout.NewVBoxLayout(), playersCont, lastCardPlaced, cardsCont)
+	btnLeave := widget.NewButton("Leave", func() {
+		requestLeave()
+		w.SetContent(getMenuContainer(w))
+	})
+
+	return container.New(layout.NewVBoxLayout(), playersCont, lastCardPlaced, cardsCont, btnLeave)
 }
 
 func getMenuContainer(w fyne.Window) *fyne.Container {
@@ -115,7 +124,7 @@ func getMenuContainer(w fyne.Window) *fyne.Container {
 		w.SetContent(getSettingsContainer(w))
 	})
 
-	return container.New(layout.NewVBoxLayout(), btnNewGame, btnSettings)
+	return container.New(layout.NewGridLayoutWithColumns(1), btnNewGame, btnSettings)
 }
 
 // show a dialog containing the error (if not nil) and load the main menu container
