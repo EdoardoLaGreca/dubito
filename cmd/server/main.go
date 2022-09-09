@@ -209,11 +209,13 @@ func main() {
 		}
 	}(addPlayerChan, removePlayerChan)
 
-	log.Println("waiting for all the players to join...")
+	for {
+		log.Println("waiting for all the players to join...")
 
-	// let players connect
-	go func() {
-		for {
+		var wg sync.WaitGroup
+
+		// let players connect
+		for i := 0; i < maxPlayers; i++ {
 			conn, err := lis.Accept()
 			if err != nil {
 				log.Println(err.Error())
@@ -226,26 +228,20 @@ func main() {
 			}()
 		}
 
-	// check if all the players joined
-	go func() {
-		for {
-			for len(joinedPlayers) < maxPlayers {
-				time.Sleep(time.Millisecond * 100)
-			}
-			maxPlayersJoinedChan <- struct{}{}
+		// check if all the players joined
+		for len(joinedPlayers) < maxPlayers {
+			time.Sleep(time.Millisecond * 100)
 		}
-	}()
 
-	<-maxPlayersJoinedChan
+		log.Println("all the players joined the game")
 
-	log.Println("all the players joined the game")
+		// give cards
+		cards := giveCards(len(joinedPlayers))
+		for i := range joinedPlayers {
+			joinedPlayers[i].cards = cards[i]
+			log.Println("cards have been assigned to " + joinedPlayers[i].name)
+		}
 
-	// give cards
-	cards := giveCards(len(joinedPlayers))
-	for i := range joinedPlayers {
-		joinedPlayers[i].cards = cards[i]
-		log.Println("cards have been assigned to " + joinedPlayers[i].name)
+		wg.Wait()
 	}
-
-	wg.Wait()
 }
