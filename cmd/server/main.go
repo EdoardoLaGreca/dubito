@@ -210,7 +210,7 @@ func main() {
 	}(addPlayerChan, removePlayerChan)
 
 	for {
-		log.Println("waiting for all the players to join...")
+		log.Println("waiting for players to join...")
 
 		var wg sync.WaitGroup
 
