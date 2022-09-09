@@ -33,32 +33,17 @@ func getPlayerByConn(conn net.Conn) (*player, error) {
 	return &player{}, fmt.Errorf("player not found")
 }
 
-// remove player if found, do nothing otherwise
-func removePlayerByConn(conn net.Conn) {
-	index := -1
-
-	for i, p := range joinedPlayers {
-		if p.conn == conn {
-			index = i
-		}
-	}
-
-	if index != -1 {
-		// remove player
-		joinedPlayers = append(joinedPlayers[:index], joinedPlayers[index+1:]...)
-	}
-}
-
 func fmtPlayerName(p *player) string {
 	return p.name + " (" + p.conn.RemoteAddr().String() + ")"
 }
 
-func handler(conn net.Conn, maxPlayers int, players chan<- *player) {
-	defer removePlayerByConn(conn)
-
+func handler(conn net.Conn, maxPlayers int, addPlayer chan<- *player, removePlayer chan<- *player) {
 	log.Println("a player connected (IP: " + conn.RemoteAddr().String() + ")")
 	hasJoined := false
 	var p *player // read this only if the player has joined
+
+	// remove player when handler ends
+	defer func() { removePlayer <- p }()
 
 msgLoop:
 	for {
@@ -91,7 +76,7 @@ msgLoop:
 					tmpPlayer := new(player)
 					tmpPlayer.conn = conn
 					tmpPlayer.name = fields[1]
-					players <- tmpPlayer
+					addPlayer <- tmpPlayer
 
 					// wait for the player to be added to joinedPlayers
 					for {
@@ -200,18 +185,27 @@ func main() {
 		panic(err.Error())
 	}
 
-	playersChan := make(chan *player)
-	maxPlayersJoinedChan := make(chan struct{})
+	addPlayerChan := make(chan *player)
+	removePlayerChan := make(chan *player)
 
-	var wg sync.WaitGroup
+	// goroutine to add and remove players from joinedPlayers
+	go func(addPlayers <-chan *player, removePlayers <-chan *player) {
+		for {
+			select {
+			case p := <-addPlayers:
+				joinedPlayers = append(joinedPlayers, p)
 
-	// create goroutine to append new players to joinedPlayers
-	go func(players <-chan *player) {
-		// add joined players
-		for i := 0; i < maxPlayers; i++ {
-			joinedPlayers = append(joinedPlayers, <-players)
+			case p := <-removePlayers:
+				// find and remove player
+				for i, jp := range joinedPlayers {
+					if jp == p {
+						joinedPlayers = append(joinedPlayers[:i], joinedPlayers[i+1:]...)
+						break
+					}
+				}
+			}
 		}
-	}(playersChan)
+	}(addPlayerChan, removePlayerChan)
 
 	log.Println("waiting for all the players to join...")
 
@@ -226,10 +220,9 @@ func main() {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				handler(conn, maxPlayers, playersChan)
+				handler(conn, maxPlayers, addPlayerChan, removePlayerChan)
 			}()
 		}
-	}()
 
 	// check if all the players joined
 	go func() {
