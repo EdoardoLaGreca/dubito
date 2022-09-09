@@ -130,6 +130,8 @@ msgLoop:
 				log.Println("player " + fmtPlayerName(p) + " left")
 				break msgLoop
 			}
+		case "keepalive":
+			netutils.SendMsg(conn, "keepalive")
 		default:
 			log.Println("invalid request from " + fmtPlayerName(p) + ": \"" + msg + "\"")
 		}
