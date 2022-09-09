@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image"
 	"image/color"
 	"strconv"
 	"strings"
@@ -87,7 +86,16 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 
 	playersCont := container.New(layout.NewHBoxLayout(), cnvPlayers...)
 
-	lastCardPlaced := canvas.NewImageFromImage(image.NewRGBA(image.Rect(0, 0, 390, 606)))
+	// initially, the last card is the deck style
+	img, err := assets.GetDeckAsset(deckStyle)
+	if err != nil {
+		dialog.ShowError(err, w)
+	}
+
+	lastCardPlaced := canvas.NewImageFromImage(img)
+	lastCardPlaced.FillMode = canvas.ImageFillContain
+	lastCardPlaced.SetMinSize(fyne.NewSize(100.0, 200.0))
+	lastCardCont := container.New(layout.NewBorderLayout(nil, nil, nil, nil), lastCardPlaced)
 
 	myCards := make([]fyne.CanvasObject, len(cards))
 
@@ -112,7 +120,7 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 		w.SetContent(getMenuContainer(w))
 	})
 
-	return container.New(layout.NewVBoxLayout(), playersCont, lastCardPlaced, cardsCont, btnLeave)
+	return container.New(layout.NewVBoxLayout(), playersCont, lastCardCont, cardsCont, btnLeave)
 }
 
 func getMenuContainer(w fyne.Window) *fyne.Container {
