@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"strconv"
 	"strings"
@@ -10,10 +11,19 @@ import (
 	"github.com/EdoardoLaGreca/dubito/internal/netutils"
 )
 
+type netResponse struct {
+	msg string
+	err error
+}
+
 var serverAddress string = "localhost"
 var serverPort uint16 = 9876
 
 var conn net.Conn
+
+var recvChan chan netResponse = make(chan netResponse) // receive messages
+var closeChan chan struct{} = make(chan struct{})      // the connection closed
+var stopCheckChan chan struct{} = make(chan struct{})  // stop receiving for messages
 
 // do not use openConn if you call initConn
 func openConn(addr string, port uint16) (net.Conn, error) {
@@ -29,6 +39,24 @@ func initConn() error {
 
 	conn = c
 
+	// goroutine to check for crashes and receive messages
+	go func(conn net.Conn) {
+		for {
+			select {
+			case <-stopCheckChan:
+				return
+			default:
+				resp, err := netutils.RecvMsg(conn)
+				if err != nil && err == io.EOF {
+					closeChan <- struct{}{}
+					return
+				} else {
+					recvChan <- netResponse{msg: resp, err: err}
+				}
+			}
+		}
+	}(conn)
+
 	return nil
 }
 
@@ -38,13 +66,13 @@ func requestJoin(conn net.Conn) error {
 		return err
 	}
 
-	resp, err := netutils.RecvMsg(conn)
-	if err != nil {
-		return err
+	resp := <-recvChan
+	if resp.err != nil {
+		return resp.err
 	}
 
-	if resp != "ok" {
-		return fmt.Errorf(resp)
+	if resp.msg != "ok" {
+		return fmt.Errorf(resp.msg)
 	}
 
 	return nil
@@ -56,12 +84,12 @@ func requestPlayers(conn net.Conn) ([]string, error) {
 		return nil, err
 	}
 
-	playersCsv, err := netutils.RecvMsg(conn)
-	if err != nil {
-		return nil, err
+	playersCsv := <-recvChan
+	if playersCsv.err != nil {
+		return nil, playersCsv.err
 	}
 
-	players := strings.Split(playersCsv, ",")
+	players := strings.Split(playersCsv.msg, ",")
 	return players, nil
 }
 
@@ -71,12 +99,12 @@ func requestMaxPlayers(conn net.Conn) (uint, error) {
 		return 0, err
 	}
 
-	maxPlayersStr, err := netutils.RecvMsg(conn)
-	if err != nil {
-		return 0, err
+	maxPlayersStr := <-recvChan
+	if maxPlayersStr.err != nil {
+		return 0, maxPlayersStr.err
 	}
 
-	maxPlayers, err := strconv.Atoi(maxPlayersStr)
+	maxPlayers, err := strconv.Atoi(maxPlayersStr.msg)
 	if err != nil {
 		return 0, err
 	}
@@ -90,12 +118,12 @@ func requestCards(conn net.Conn) ([]cardutils.Card, error) {
 		return nil, err
 	}
 
-	cardsStr, err := netutils.RecvMsg(conn)
-	if err != nil {
-		return nil, err
+	cardsStr := <-recvChan
+	if cardsStr.err != nil {
+		return nil, cardsStr.err
 	}
 
-	cardsSp := strings.Split(cardsStr, ",")
+	cardsSp := strings.Split(cardsStr.msg, ",")
 
 	cards := make([]cardutils.Card, len(cardsSp))
 

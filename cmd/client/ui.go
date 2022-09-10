@@ -143,6 +143,15 @@ func backToMainMenu(w fyne.Window, err error) {
 	w.SetContent(getMenuContainer(w))
 }
 
+// connection closing handler, it does thing when the connection is lost
+func connClosingHandler(w fyne.Window) {
+	// the connection is lost
+	<-closeChan
+
+	dialog.ShowError(fmt.Errorf("connection lost"), w)
+	w.SetContent(getMenuContainer(w))
+}
+
 func newGame(w fyne.Window) {
 	err := initConn()
 	if err != nil {
@@ -192,4 +201,5 @@ func newGame(w fyne.Window) {
 
 	gameCont := getGameContainer(w, players, cards)
 	w.SetContent(gameCont)
+	go connClosingHandler(w)
 }
