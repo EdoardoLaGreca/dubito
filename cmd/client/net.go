@@ -32,22 +32,6 @@ func initConn() error {
 	return nil
 }
 
-// keep the connection alive
-func requestKeepAlive(conn net.Conn) error {
-	err := netutils.SendMsg(conn, "keepalive")
-	if err != nil {
-		return err
-	}
-
-	// what's in the response is not really important as long as the host sent something
-	_, err = netutils.RecvMsg(conn)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func requestJoin(conn net.Conn) error {
 	err := netutils.SendMsg(conn, "join "+username)
 	if err != nil {
