@@ -97,23 +97,25 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 	lastCardPlaced.SetMinSize(fyne.NewSize(100.0, 200.0))
 	lastCardCont := container.New(layout.NewBorderLayout(nil, nil, nil, nil), lastCardPlaced)
 
-	myCards := make([]fyne.CanvasObject, len(cards))
+	// use a grid layout of 1 row to divide the horizontal space in equal parts
+	cardsCont := container.New(layout.NewGridWrapLayout(fyne.NewSize(40.0, 80.0)))
 
-	for i, c := range cards {
-		img, err := assets.GetCardAsset(c)
+	for _, c := range cards {
+		img, err := assets.GetCardAssetBytes(c)
 		if err != nil {
 			dialog.ShowError(err, w)
 			break
 		}
 
-		canvasImage := canvas.NewImageFromImage(img)
-		canvasImage.FillMode = canvas.ImageFillContain
+		clickableImg := widget.NewButtonWithIcon("", fyne.NewStaticResource(cardutils.CardToString(c), img), func() {
+			err := requestPlaceCard(conn, c)
+			if err != nil {
+				dialog.ShowError(err, w)
+			}
+		})
 
-		myCards[i] = canvasImage
+		cardsCont.Add(clickableImg)
 	}
-
-	// use a grid layout of 1 row to divide the horizontal space in equal parts
-	cardsCont := container.New(layout.NewGridWrapLayout(fyne.NewSize(40.0, 80.0)), myCards...)
 
 	btnLeave := widget.NewButton("Leave", func() {
 		requestLeave()
