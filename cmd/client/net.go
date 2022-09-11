@@ -137,6 +137,24 @@ func requestCards(conn net.Conn) ([]cardutils.Card, error) {
 	return cards, nil
 }
 
+func requestPlaceCard(conn net.Conn, card cardutils.Card) error {
+	err := netutils.SendMsg(conn, "place "+cardutils.CardToString(card))
+	if err != nil {
+		return err
+	}
+
+	resp := <-recvChan
+	if resp.err != nil {
+		return resp.err
+	}
+
+	if resp.msg != "ok" {
+		return fmt.Errorf("cannot place the card")
+	}
+
+	return nil
+}
+
 func requestLeave() error {
 	err := netutils.SendMsg(conn, "leave")
 	conn.Close()
