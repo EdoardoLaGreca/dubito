@@ -64,7 +64,7 @@ func GetCardAsset(c cardutils.Card) (image.Image, error) {
 func GetCardAssetBytes(c cardutils.Card) ([]byte, error) {
 	filename := getCardFilename(c)
 
-	b, err := imageAssets.ReadFile(filename)
+	b, err := imageAssets.ReadFile("cards/" + filename)
 	if err != nil {
 		return nil, err
 	}
