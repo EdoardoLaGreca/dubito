@@ -11,10 +11,10 @@ import (
 )
 
 //go:embed cards decks
-var assets embed.FS
+var imageAssets embed.FS
 
-func GetCardAsset(c cardutils.Card) (image.Image, error) {
-	filename := "card_"
+func getCardFilename(c cardutils.Card) (filename string) {
+	filename = "card_"
 
 	switch c.Suit {
 	case cardutils.Clubs:
@@ -42,7 +42,13 @@ func GetCardAsset(c cardutils.Card) (image.Image, error) {
 
 	filename += ".png"
 
-	content, err := assets.ReadFile("cards/" + filename)
+	return
+}
+
+func GetCardAsset(c cardutils.Card) (image.Image, error) {
+	filename := getCardFilename(c)
+
+	content, err := imageAssets.ReadFile("cards/" + filename)
 	if err != nil {
 		return nil, err
 	}
