@@ -140,3 +140,14 @@ func CardToString(c Card) (name string) {
 
 	return
 }
+
+// CardsToString converts multiple cards to strings
+func CardsToString(cards []Card) []string {
+	cardsStr := make([]string, len(cards))
+
+	for i, c := range cards {
+		cardsStr[i] = CardToString(c)
+	}
+
+	return cardsStr
+}
