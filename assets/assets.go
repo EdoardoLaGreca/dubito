@@ -61,17 +61,6 @@ func GetCardAsset(c cardutils.Card) (image.Image, error) {
 	return img, nil
 }
 
-func GetCardAssetBytes(c cardutils.Card) ([]byte, error) {
-	filename := getCardFilename(c)
-
-	b, err := imageAssets.ReadFile("cards/" + filename)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
-}
-
 func GetDeckAsset(style int) (image.Image, error) {
 	content, err := imageAssets.ReadFile("decks/deck_" + strconv.Itoa(style) + ".png")
 	if err != nil {
