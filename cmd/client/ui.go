@@ -18,6 +18,28 @@ import (
 )
 
 var deckStyle int = 1
+var selectedCards []cardutils.Card = make([]cardutils.Card, 0)
+
+// true if selectedCards contains card
+func selectedCardsContains(card cardutils.Card) bool {
+	for _, c := range selectedCards {
+		if c == card {
+			return true
+		}
+	}
+
+	return false
+}
+
+// remove card from selectedCards if it exists, otherwise do nothing
+func removeSelectedCard(card cardutils.Card) {
+	for i, c := range selectedCards {
+		if c == card {
+			selectedCards = append(selectedCards[:i], selectedCards[i+1:]...)
+			break
+		}
+	}
+}
 
 func getSettingsContainer(w fyne.Window) *fyne.Container {
 	lblUsername := widget.NewLabel("Username")
@@ -100,19 +122,47 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 	// use a grid layout of 1 row to divide the horizontal space in equal parts
 	cardsCont := container.New(layout.NewGridWrapLayout(fyne.NewSize(40.0, 80.0)))
 
+	lblSelectedCards := widget.NewLabel("You selected 0 cards")
+
 	for _, c := range cards {
-		img, err := assets.GetCardAssetBytes(c)
+		img, err := assets.GetCardAsset(c)
 		if err != nil {
 			dialog.ShowError(err, w)
 			break
 		}
 
-		clickableImg := widget.NewButtonWithIcon("", fyne.NewStaticResource(cardutils.CardToString(c), img), func() {
-			err := requestPlaceCard(conn, c)
-			if err != nil {
-				dialog.ShowError(err, w)
+		canvasImage := canvas.NewImageFromImage(img)
+		canvasImage.FillMode = canvas.ImageFillContain
+
+		rectSelected := canvas.NewRectangle(color.RGBA{R: 0, G: 0, B: 0, A: 255})
+
+		// save the card in a new variable so that the function literal doesn't reference the variable updated by the loop. otherwise it would
+		// cause function literals to all have the same value, which would always be the last card of the loop
+		currentCard := c
+
+		imgButton := widget.NewButton("", func() {
+			if selectedCardsContains(currentCard) {
+				fmt.Println("route 1") //DEBUG
+				removeSelectedCard(currentCard)
+				rectSelected.FillColor = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+				rectSelected.Refresh()
+			} else {
+				fmt.Println("route2") //DEBUG
+				if len(selectedCards) < 4 {
+					selectedCards = append(selectedCards, currentCard)
+					rectSelected.FillColor = color.RGBA{R: 0, G: 255, B: 0, A: 255}
+					rectSelected.Refresh()
+				} else {
+					dialog.ShowError(fmt.Errorf("you selected 4 cards already"), w)
+				}
 			}
+			fmt.Println(selectedCards)
+			lblSelectedCards.Text = fmt.Sprintf("You selected %d cards: %s", len(selectedCards), strings.Join(cardutils.CardsToString(selectedCards), ", "))
+			lblSelectedCards.Refresh()
 		})
+
+		// button with a rectangle and an image on top of it
+		clickableImg := container.NewMax(imgButton, rectSelected, canvasImage)
 
 		cardsCont.Add(clickableImg)
 	}
@@ -122,7 +172,7 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 		w.SetContent(getMenuContainer(w))
 	})
 
-	return container.New(layout.NewVBoxLayout(), playersCont, lastCardCont, cardsCont, btnLeave)
+	return container.New(layout.NewVBoxLayout(), playersCont, lastCardCont, cardsCont, lblSelectedCards, btnLeave)
 }
 
 func getMenuContainer(w fyne.Window) *fyne.Container {
