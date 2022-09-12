@@ -22,6 +22,9 @@ type player struct {
 }
 
 var joinedPlayers []*player = make([]*player, 0)
+var currentTurn int = 0
+
+var lastPlacedCards []cardutils.Card
 
 func getPlayerByConn(conn net.Conn) (*player, error) {
 	for _, p := range joinedPlayers {
@@ -35,6 +38,38 @@ func getPlayerByConn(conn net.Conn) (*player, error) {
 
 func fmtPlayerName(p *player) string {
 	return p.name + " (" + p.conn.RemoteAddr().String() + ")"
+}
+
+// check if the current turn is the player's turn
+func checkPlayerTurn(p *player) bool {
+	return joinedPlayers[currentTurn].conn.RemoteAddr() == p.conn.RemoteAddr()
+}
+
+// check if player has cards
+// the cards should not be duplicated
+func checkPlayerHasCards(p *player, cards []cardutils.Card) bool {
+	cardsFound := make(map[cardutils.Card]bool)
+
+	// add cards
+	for _, c := range cards {
+		cardsFound[c] = false
+	}
+
+	for _, c := range cards {
+		for _, pc := range p.cards {
+			if c == pc {
+				cardsFound[c] = true
+			}
+		}
+	}
+
+	for _, found := range cardsFound {
+		if !found {
+			return false
+		}
+	}
+
+	return true
 }
 
 func handler(conn net.Conn, maxPlayers int, addPlayer chan<- *player, removePlayer chan<- *player) {
@@ -121,8 +156,45 @@ msgLoop:
 					cardsStr = strings.TrimSuffix(cardsStr, ",")
 					netutils.SendMsg(conn, cardsStr)
 
+				case "my-turn":
+					if checkPlayerTurn(p) {
+						netutils.SendMsg(conn, "yes")
+					} else {
+						netutils.SendMsg(conn, "no")
+					}
 				default:
 					log.Println("invalid request from " + fmtPlayerName(p) + ": \"" + msg + "\"")
+				}
+			}
+		case "place":
+			if hasJoined {
+				if !checkPlayerTurn(p) {
+					netutils.SendMsg(conn, "wrong turn")
+				} else {
+					cardsStr := strings.Split(strings.Join(fields[1:], " "), ",")
+					cards := make([]cardutils.Card, len(cardsStr))
+
+					// convert cardsStr into cards
+					for i, cs := range cardsStr {
+						card, err := cardutils.CardByName(cs)
+						if err != nil {
+							log.Println("invalid card placed: \"" + cs + "\"")
+							break
+						}
+						cards[i] = card
+					}
+
+					// check number of cards
+					if len(cards) >= 1 && len(cards) <= 4 {
+						// check if the player have those cards
+						if checkPlayerHasCards(p, cards) {
+							lastPlacedCards = cards
+						} else {
+							netutils.SendMsg(conn, "you don't have that card")
+						}
+					} else {
+						netutils.SendMsg(conn, "too many cards")
+					}
 				}
 			}
 		case "leave":
