@@ -137,22 +137,48 @@ func requestCards(conn net.Conn) ([]cardutils.Card, error) {
 	return cards, nil
 }
 
-func requestPlaceCard(conn net.Conn, card cardutils.Card) error {
-	err := netutils.SendMsg(conn, "place "+cardutils.CardToString(card))
+func requestTurn(conn net.Conn) (bool, error) {
+	err := netutils.SendMsg(conn, "get my-turn")
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	resp := <-recvChan
 	if resp.err != nil {
-		return resp.err
+		return false, resp.err
+	}
+
+	if resp.msg != "yes" {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func requestPlaceCards(conn net.Conn, cards []cardutils.Card) (bool, error) {
+	var cardsStr string
+
+	for _, c := range cards {
+		cardsStr += cardutils.CardToString(c) + ","
+	}
+
+	strings.TrimRight(cardsStr, ",")
+
+	err := netutils.SendMsg(conn, "place "+cardsStr)
+	if err != nil {
+		return false, err
+	}
+
+	resp := <-recvChan
+	if resp.err != nil {
+		return false, resp.err
 	}
 
 	if resp.msg != "ok" {
-		return fmt.Errorf("cannot place the card")
+		return false, nil
 	}
 
-	return nil
+	return true, nil
 }
 
 func requestLeave() error {
