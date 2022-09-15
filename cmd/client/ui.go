@@ -142,12 +142,10 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 
 		imgButton := widget.NewButton("", func() {
 			if selectedCardsContains(currentCard) {
-				fmt.Println("route 1") //DEBUG
 				removeSelectedCard(currentCard)
 				rectSelected.FillColor = color.RGBA{R: 0, G: 0, B: 0, A: 255}
 				rectSelected.Refresh()
 			} else {
-				fmt.Println("route2") //DEBUG
 				if len(selectedCards) < 4 {
 					selectedCards = append(selectedCards, currentCard)
 					rectSelected.FillColor = color.RGBA{R: 0, G: 255, B: 0, A: 255}
