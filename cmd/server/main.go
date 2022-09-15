@@ -22,6 +22,7 @@ type player struct {
 
 var joinedPlayers []*player = make([]*player, 0)
 var currentTurn int = 0
+var currentRank cardutils.Rank
 
 var lastPlacedCards []cardutils.Card
 
@@ -90,10 +91,22 @@ func checkPlayerHasCards(p *player, cards []cardutils.Card) bool {
 	return true
 }
 
+// return true if all the cards match the rank
+func checkLastPlacedCards(rank cardutils.Rank) bool {
+	for _, c := range lastPlacedCards {
+		if c.Rank != rank {
+			return false
+		}
+	}
+
+	return true
+}
+
 func handler(conn net.Conn, maxPlayers int, addPlayer chan<- *player, removePlayer chan<- *player) {
 	log.Println("a player connected (IP: " + conn.RemoteAddr().String() + ")")
 	hasJoined := false
-	var p *player // read this only if the player has joined
+	var p *player     // read this only if the player has joined
+	var indexInJP int // index in joinedPlayers
 
 	// remove player when handler ends
 	defer func() { removePlayer <- p }()
@@ -220,6 +233,21 @@ msgLoop:
 					} else {
 						netutils.SendMsg(conn, "too many cards")
 					}
+				}
+			}
+		case "dubito":
+			if hasJoined {
+				// send "right" if last player lied, "wrong" otherwise
+				if checkLastPlacedCards(currentRank) {
+					// last player didn't lie
+					netutils.SendMsg(conn, "wrong")
+
+					// repeat the turn for the last player
+					currentTurn--
+				} else {
+					// last player lied
+					netutils.SendMsg(conn, "right")
+					currentTurn = indexInJP
 				}
 			}
 		case "leave":

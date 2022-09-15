@@ -181,6 +181,25 @@ func requestPlaceCards(cards []cardutils.Card) (bool, error) {
 	return true, nil
 }
 
+// return true if the doubt was correct (last player lied)
+func requestDubito() (bool, error) {
+	err := netutils.SendMsg(conn, "dubito")
+	if err != nil {
+		return false, err
+	}
+
+	resp := <-recvChan
+	if resp.err != nil {
+		return false, resp.err
+	}
+
+	if resp.msg == "right" {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func requestLeave() error {
 	err := netutils.SendMsg(conn, "leave")
 	conn.Close()
