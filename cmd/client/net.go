@@ -162,7 +162,7 @@ func requestPlaceCards(cards []cardutils.Card) (bool, error) {
 		cardsStr += cardutils.CardToString(c) + ","
 	}
 
-	strings.TrimRight(cardsStr, ",")
+	cardsStr = strings.TrimRight(cardsStr, ",")
 
 	err := netutils.SendMsg(conn, "place "+cardsStr)
 	if err != nil {
