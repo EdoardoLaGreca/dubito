@@ -32,7 +32,7 @@ func getPlayerByConn(conn net.Conn) *player {
 			return nil
 		}
 
-		if p.conn == conn {
+		if p.conn.RemoteAddr() == conn.RemoteAddr() {
 			return p
 		}
 	}
