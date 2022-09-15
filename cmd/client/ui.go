@@ -154,7 +154,6 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 					dialog.ShowError(fmt.Errorf("you selected 4 cards already"), w)
 				}
 			}
-			fmt.Println(selectedCards)
 			lblSelectedCards.Text = fmt.Sprintf("You selected %d cards: %s", len(selectedCards), strings.Join(cardutils.CardsToString(selectedCards), ", "))
 			lblSelectedCards.Refresh()
 		})
