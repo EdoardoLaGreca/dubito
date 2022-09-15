@@ -211,7 +211,7 @@ func newGame(w fyne.Window) {
 		return
 	}
 
-	err = requestJoin(conn)
+	err = requestJoin()
 	if err != nil {
 		dialog.ShowError(err, w)
 		return
@@ -219,7 +219,7 @@ func newGame(w fyne.Window) {
 
 	w.SetTitle("Dubito | In game as " + username)
 
-	maxPlayers, err := requestMaxPlayers(conn)
+	maxPlayers, err := requestMaxPlayers()
 	if err != nil {
 		dialog.ShowError(err, w)
 		return
@@ -235,7 +235,7 @@ func newGame(w fyne.Window) {
 	// wait until all players joined
 	for len(players) < int(maxPlayers) {
 		var err error
-		players, err = requestPlayers(conn)
+		players, err = requestPlayers()
 		if err != nil {
 			backToMainMenu(w, err)
 			return
@@ -245,7 +245,7 @@ func newGame(w fyne.Window) {
 		time.Sleep(time.Duration(200 * time.Millisecond))
 	}
 
-	cards, err := requestCards(conn)
+	cards, err := requestCards()
 	if err != nil {
 		backToMainMenu(w, err)
 		return
