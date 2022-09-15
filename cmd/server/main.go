@@ -25,19 +25,33 @@ var currentTurn int = 0
 
 var lastPlacedCards []cardutils.Card
 
-func getPlayerByConn(conn net.Conn) *player {
-	for _, p := range joinedPlayers {
-		if p == nil {
-			// a race condition happened
-			return nil
+func getPlayerByConn(conn net.Conn) (int, *player) {
+	repeat := false
+
+	if conn == nil {
+		return -1, nil
+	}
+
+	for {
+		for i, p := range joinedPlayers {
+			if p == nil {
+				// a race condition happened
+				repeat = true
+			}
+
+			if p.conn.RemoteAddr() == conn.RemoteAddr() {
+				return i, p
+			}
 		}
 
-		if p.conn.RemoteAddr() == conn.RemoteAddr() {
-			return p
+		if !repeat {
+			break
+		} else {
+			repeat = false
 		}
 	}
 
-	return nil
+	return -1, nil
 }
 
 func fmtPlayerName(p *player) string {
@@ -119,12 +133,13 @@ msgLoop:
 
 					// wait for the player to be added to joinedPlayers
 					for {
-						foundPlayer := getPlayerByConn(conn)
+						index, foundPlayer := getPlayerByConn(conn)
 						if foundPlayer == nil {
 							continue
 						}
 
 						p = foundPlayer
+						indexInJP = index
 						hasJoined = true
 						break
 					}
