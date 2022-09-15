@@ -164,12 +164,25 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 		cardsCont.Add(clickableImg)
 	}
 
+	btnPlace := widget.NewButton("Place cards", func() {
+		if len(selectedCards) == 0 {
+			return
+		}
+
+		ok, err := requestPlaceCards(selectedCards)
+		if err != nil {
+			dialog.ShowError(err, w)
+		} else if !ok {
+			dialog.ShowError(fmt.Errorf("unable to place cards"), w)
+		}
+	})
+
 	btnLeave := widget.NewButton("Leave", func() {
 		requestLeave()
 		w.SetContent(getMenuContainer(w))
 	})
 
-	return container.New(layout.NewVBoxLayout(), playersCont, lastCardCont, cardsCont, lblSelectedCards, btnLeave)
+	return container.New(layout.NewVBoxLayout(), playersCont, lastCardCont, cardsCont, lblSelectedCards, btnPlace, btnLeave)
 }
 
 func getMenuContainer(w fyne.Window) *fyne.Container {
