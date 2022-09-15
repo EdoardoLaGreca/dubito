@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -26,14 +25,14 @@ var currentTurn int = 0
 
 var lastPlacedCards []cardutils.Card
 
-func getPlayerByConn(conn net.Conn) (*player, error) {
+func getPlayerByConn(conn net.Conn) *player {
 	for _, p := range joinedPlayers {
 		if p.conn == conn {
-			return p, nil
+			return p
 		}
 	}
 
-	return &player{}, fmt.Errorf("player not found")
+	return nil
 }
 
 func fmtPlayerName(p *player) string {
@@ -115,8 +114,8 @@ msgLoop:
 
 					// wait for the player to be added to joinedPlayers
 					for {
-						foundPlayer, err := getPlayerByConn(conn)
-						if err != nil {
+						foundPlayer := getPlayerByConn(conn)
+						if foundPlayer == nil {
 							continue
 						}
 
