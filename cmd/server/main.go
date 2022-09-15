@@ -295,7 +295,7 @@ func main() {
 		var wg sync.WaitGroup
 
 		// let players connect
-		for i := 0; i < maxPlayers; i++ {
+		for len(joinedPlayers) < maxPlayers {
 			conn, err := lis.Accept()
 			if err != nil {
 				log.Println(err.Error())
@@ -306,11 +306,6 @@ func main() {
 				defer wg.Done()
 				handler(conn, maxPlayers, addPlayerChan, removePlayerChan)
 			}()
-		}
-
-		// check if all the players joined
-		for len(joinedPlayers) < maxPlayers {
-			time.Sleep(time.Millisecond * 100)
 		}
 
 		log.Println("all the players joined the game")
