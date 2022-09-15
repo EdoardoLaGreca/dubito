@@ -192,7 +192,13 @@ msgLoop:
 					if len(cards) >= 1 && len(cards) <= 4 {
 						// check if the player have those cards
 						if checkPlayerHasCards(p, cards) {
+							// place the cards
 							lastPlacedCards = cards
+
+							currentTurn++
+							if currentTurn >= len(joinedPlayers) {
+								currentTurn = 0
+							}
 						} else {
 							netutils.SendMsg(conn, "you don't have that card")
 						}
