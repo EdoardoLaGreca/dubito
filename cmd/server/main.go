@@ -27,6 +27,11 @@ var lastPlacedCards []cardutils.Card
 
 func getPlayerByConn(conn net.Conn) *player {
 	for _, p := range joinedPlayers {
+		if p == nil {
+			// a race condition happened
+			return nil
+		}
+
 		if p.conn == conn {
 			return p
 		}
