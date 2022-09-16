@@ -221,6 +221,8 @@ func newGame(w fyne.Window) {
 		return
 	}
 
+	go connClosingHandler(w)
+
 	err = requestJoin()
 	if err != nil {
 		dialog.ShowError(err, w)
@@ -263,5 +265,4 @@ func newGame(w fyne.Window) {
 
 	gameCont := getGameContainer(w, players, cards)
 	w.SetContent(gameCont)
-	go connClosingHandler(w)
 }
