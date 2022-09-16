@@ -38,6 +38,7 @@ func getPlayerByConn(conn net.Conn) (int, *player) {
 			if p == nil {
 				// a race condition happened
 				repeat = true
+				break
 			}
 
 			if p.conn.RemoteAddr() == conn.RemoteAddr() {
