@@ -20,6 +20,7 @@ type player struct {
 	cards []cardutils.Card
 }
 
+var connectedPlayers int
 var joinedPlayers []*player = make([]*player, 0)
 var currentTurn int = 0
 var currentRank cardutils.Rank
@@ -110,7 +111,7 @@ func handler(conn net.Conn, maxPlayers int, addPlayer chan<- *player, removePlay
 	var indexInJP int // index in joinedPlayers
 
 	// remove player when handler ends
-	defer func() { removePlayer <- p }()
+	defer func() { connectedPlayers--; removePlayer <- p }()
 
 msgLoop:
 	for {
@@ -340,16 +341,22 @@ func main() {
 
 		// let players connect
 		for len(joinedPlayers) < maxPlayers {
-			conn, err := lis.Accept()
-			if err != nil {
-				log.Println(err.Error())
-			}
+			if connectedPlayers < maxPlayers {
+				conn, err := lis.Accept()
+				if err != nil {
+					log.Println(err.Error())
+				}
 
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				handler(conn, maxPlayers, addPlayerChan, removePlayerChan)
-			}()
+				connectedPlayers++
+
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					handler(conn, maxPlayers, addPlayerChan, removePlayerChan)
+				}()
+			} else {
+				time.Sleep(200 * time.Millisecond)
+			}
 		}
 
 		log.Println("all the players joined the game")
