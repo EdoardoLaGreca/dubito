@@ -177,6 +177,8 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 		}
 	})
 
+	btnPlace.Hide()
+
 	btnLeave := widget.NewButton("Leave", func() {
 		requestLeave()
 		w.SetContent(getMenuContainer(w))
@@ -265,4 +267,33 @@ func newGame(w fyne.Window) {
 
 	gameCont := getGameContainer(w, players, cards)
 	w.SetContent(gameCont)
+
+	btnPlace := gameCont.Objects[4].(*widget.Button)
+
+	// goroutine to perform actions based on turns
+	go func(w fyne.Window) {
+		for {
+			isTurn, err := requestTurn()
+			if err == errWinner || err == errLoser {
+				switch err {
+				case errWinner:
+					dialog.ShowInformation("Game over", "You won! :)", w)
+				case errLoser:
+					dialog.ShowInformation("Game over", "You lose... :(", w)
+				}
+
+				return
+			} else if err != nil {
+				dialog.ShowError(err, w)
+			}
+
+			if isTurn {
+				btnPlace.Show()
+			} else {
+				btnPlace.Hide()
+			}
+
+			time.Sleep(200 * time.Millisecond)
+		}
+	}(w)
 }
