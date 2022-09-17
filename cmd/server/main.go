@@ -244,8 +244,9 @@ msgLoop:
 						if checkPlayerHasCards(p, cards) {
 							// place the cards
 							lastPlacedCards = cards
-
+							netutils.SendMsg(conn, "ok")
 							currentTurn++
+
 							if currentTurn >= len(joinedPlayers) {
 								currentTurn = 0
 							}
