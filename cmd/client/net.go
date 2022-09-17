@@ -16,6 +16,9 @@ type netResponse struct {
 	err error
 }
 
+var errWinner error = fmt.Errorf("you won")
+var errLoser error = fmt.Errorf("you lose")
+
 var serverAddress string = "localhost"
 var serverPort uint16 = 9876
 
