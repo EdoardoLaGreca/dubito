@@ -140,6 +140,7 @@ func requestCards() ([]cardutils.Card, error) {
 	return cards, nil
 }
 
+// return error if the player won/lost
 func requestTurn() (bool, error) {
 	err := netutils.SendMsg(conn, "get my-turn")
 	if err != nil {
@@ -151,11 +152,16 @@ func requestTurn() (bool, error) {
 		return false, resp.err
 	}
 
-	if resp.msg != "yes" {
+	switch resp.msg {
+	case "yes":
+		return true, nil
+	case "winner":
+		return false, errWinner
+	case "loser":
+		return false, errLoser
+	default:
 		return false, nil
 	}
-
-	return true, nil
 }
 
 func requestPlaceCards(cards []cardutils.Card) (bool, error) {

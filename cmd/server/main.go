@@ -66,6 +66,17 @@ func checkPlayerTurn(p *player) bool {
 	return joinedPlayers[currentTurn].conn.RemoteAddr() == p.conn.RemoteAddr()
 }
 
+// returns the winner or nil if the game is not over yet
+func checkWin() *player {
+	for _, p := range joinedPlayers {
+		if len(p.cards) == 0 {
+			return p
+		}
+	}
+
+	return nil
+}
+
 // check if player has cards
 // the cards should not be duplicated
 func checkPlayerHasCards(p *player, cards []cardutils.Card) bool {
@@ -191,10 +202,19 @@ msgLoop:
 					netutils.SendMsg(conn, cardsStr)
 
 				case "my-turn":
-					if checkPlayerTurn(p) {
-						netutils.SendMsg(conn, "yes")
+					winner := checkWin()
+					if winner == nil {
+						if checkPlayerTurn(p) {
+							netutils.SendMsg(conn, "yes")
+						} else {
+							netutils.SendMsg(conn, "no")
+						}
 					} else {
-						netutils.SendMsg(conn, "no")
+						if p == winner {
+							netutils.SendMsg(conn, "winner")
+						} else {
+							netutils.SendMsg(conn, "loser")
+						}
 					}
 				default:
 					log.Println("invalid request from " + fmtPlayerName(p) + ": \"" + msg + "\"")
