@@ -6,6 +6,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/EdoardoLaGreca/dubito/internal/cardutils"
 	"github.com/EdoardoLaGreca/dubito/internal/netutils"
@@ -27,6 +28,8 @@ var conn net.Conn
 var recvChan chan netResponse = make(chan netResponse) // receive messages
 var closeChan chan struct{} = make(chan struct{})      // the connection closed
 var stopCheckChan chan struct{} = make(chan struct{})  // stop receiving for messages
+
+var netMutex sync.Mutex
 
 // do not use openConn if you call initConn
 func openConn(addr string, port uint16) (net.Conn, error) {
@@ -64,6 +67,9 @@ func initConn() error {
 }
 
 func requestJoin() error {
+	netMutex.Lock()
+	defer netMutex.Unlock()
+
 	err := netutils.SendMsg(conn, "join "+username)
 	if err != nil {
 		return err
@@ -82,6 +88,9 @@ func requestJoin() error {
 }
 
 func requestPlayers() ([]string, error) {
+	netMutex.Lock()
+	defer netMutex.Unlock()
+
 	err := netutils.SendMsg(conn, "get players")
 	if err != nil {
 		return nil, err
@@ -97,6 +106,9 @@ func requestPlayers() ([]string, error) {
 }
 
 func requestMaxPlayers() (uint, error) {
+	netMutex.Lock()
+	defer netMutex.Unlock()
+
 	err := netutils.SendMsg(conn, "get max-players")
 	if err != nil {
 		return 0, err
@@ -116,6 +128,9 @@ func requestMaxPlayers() (uint, error) {
 }
 
 func requestCards() ([]cardutils.Card, error) {
+	netMutex.Lock()
+	defer netMutex.Unlock()
+
 	err := netutils.SendMsg(conn, "get cards")
 	if err != nil {
 		return nil, err
@@ -142,6 +157,9 @@ func requestCards() ([]cardutils.Card, error) {
 
 // return error if the player won/lost
 func requestTurn() (bool, error) {
+	netMutex.Lock()
+	defer netMutex.Unlock()
+
 	err := netutils.SendMsg(conn, "get my-turn")
 	if err != nil {
 		return false, err
@@ -165,6 +183,9 @@ func requestTurn() (bool, error) {
 }
 
 func requestPlaceCards(cards []cardutils.Card) (bool, error) {
+	netMutex.Lock()
+	defer netMutex.Unlock()
+
 	var cardsStr string
 
 	for _, c := range cards {
@@ -192,6 +213,9 @@ func requestPlaceCards(cards []cardutils.Card) (bool, error) {
 
 // return true if the doubt was correct (last player lied)
 func requestDubito() (bool, error) {
+	netMutex.Lock()
+	defer netMutex.Unlock()
+
 	err := netutils.SendMsg(conn, "dubito")
 	if err != nil {
 		return false, err
@@ -210,6 +234,9 @@ func requestDubito() (bool, error) {
 }
 
 func requestLeave() error {
+	netMutex.Lock()
+	defer netMutex.Unlock()
+
 	err := netutils.SendMsg(conn, "leave")
 	conn.Close()
 
