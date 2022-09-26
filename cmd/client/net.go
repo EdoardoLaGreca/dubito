@@ -26,9 +26,6 @@ type update struct {
 	cardRank    cardutils.Rank // not relevant if gameOver = true
 }
 
-var errWinner error = fmt.Errorf("winner")
-var errLoser error = fmt.Errorf("loser")
-
 var serverAddress string = "localhost"
 var serverPort uint16 = 9876
 

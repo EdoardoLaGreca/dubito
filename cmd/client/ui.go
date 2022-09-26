@@ -268,30 +268,40 @@ func newGame(w fyne.Window) {
 	gameCont := getGameContainer(w, players, cards)
 	w.SetContent(gameCont)
 
+	cnvLastCard := gameCont.Objects[1].(*fyne.Container).Objects[0].(*canvas.Image)
 	btnPlace := gameCont.Objects[4].(*widget.Button)
 
 	// goroutine to perform actions based on turns
 	go func(w fyne.Window) {
 		for {
-			isTurn, err := requestTurn()
-			if err == errWinner || err == errLoser {
-				switch err {
-				case errWinner:
-					dialog.ShowInformation("Game over", "You won! :)", w)
-				case errLoser:
-					dialog.ShowInformation("Game over", "You lose... :(", w)
+			ud, err := requestUpdate()
+			if err != nil {
+				continue
+			}
+
+			if ud.gameOver {
+				if ud.playerWon {
+					dialog.ShowInformation("You won!", "Congrats, you won this game! :)", w)
+				} else {
+					dialog.ShowInformation("You lost...", "You lost this game. :(", w)
 				}
-
-				return
-			} else if err != nil {
-				dialog.ShowError(err, w)
-			}
-
-			if isTurn {
-				btnPlace.Show()
 			} else {
-				btnPlace.Hide()
+				if ud.playerTurn {
+					btnPlace.Show()
+				} else {
+					btnPlace.Hide()
+				}
 			}
+
+			// update last card
+			newLastCard := cardutils.Card{Suit: cardutils.Spades, Rank: ud.cardRank}
+			newLastCardAsset, err := assets.GetCardAsset(newLastCard)
+			if err != nil {
+				dialog.ShowError(err, w)
+				continue
+			}
+			cnvLastCard.Image = newLastCardAsset
+			cnvLastCard.Refresh()
 
 			time.Sleep(200 * time.Millisecond)
 		}
