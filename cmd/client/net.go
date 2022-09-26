@@ -17,6 +17,15 @@ type netResponse struct {
 	err error
 }
 
+// response to "get update" request
+type update struct {
+	gameOver    bool
+	playerWon   bool           // not relevant if gameOver = false
+	playerTurn  bool           // not relevant if gameOver = true
+	cardsAmount int            // not relevant if gameOver = true
+	cardRank    cardutils.Rank // not relevant if gameOver = true
+}
+
 var errWinner error = fmt.Errorf("winner")
 var errLoser error = fmt.Errorf("loser")
 
@@ -155,31 +164,81 @@ func requestCards() ([]cardutils.Card, error) {
 	return cards, nil
 }
 
-// return error if the player won/lost
-func requestTurn() (bool, error) {
+func StrToUpdate(response string) (update, error) {
+	respLines := strings.Split(response, " ")
+
+	ud := update{}
+
+	// first line
+	switch respLines[0] {
+	case "y":
+		ud.gameOver = true
+		ud.playerWon = true
+	case "n":
+		ud.gameOver = true
+		ud.playerWon = false
+	case "u":
+		ud.gameOver = false
+	default:
+		return update{}, fmt.Errorf("invalid line 0")
+	}
+
+	if ud.gameOver {
+		return ud, nil
+	}
+
+	// second line
+	switch respLines[1] {
+	case "y":
+		ud.playerTurn = true
+	case "n":
+		ud.playerTurn = false
+	default:
+		return update{}, fmt.Errorf("invalid line 1")
+	}
+
+	// third line
+	cards := strings.Fields(respLines[2])
+
+	cardsAmount, err := strconv.Atoi(cards[0])
+	if err != nil {
+		return update{}, err
+	}
+	ud.cardsAmount = cardsAmount
+
+	cardRank, err := cardutils.RankByName(cards[1])
+	if err != nil {
+		return update{}, nil
+	}
+	ud.cardRank = cardRank
+
+	return ud, nil
+}
+
+// the response message is structured as follows:
+// [y/n/u if the player won/lost or the game is not over yet]\n
+// [y/n if the current turn is the player's turn]\n
+// [cards which the last player said to have placed (<N> <card rank>, e.g. "3 seven")]
+//
+// e.g.
+// "u\n
+// n\n
+// 2 ace"
+func requestUpdate() (update, error) {
 	netMutex.Lock()
 	defer netMutex.Unlock()
 
-	err := netutils.SendMsg(conn, "get my-turn")
+	err := netutils.SendMsg(conn, "get update")
 	if err != nil {
-		return false, err
+		return update{}, err
 	}
 
 	resp := <-recvChan
 	if resp.err != nil {
-		return false, resp.err
+		return update{}, resp.err
 	}
 
-	switch resp.msg {
-	case "yes":
-		return true, nil
-	case "winner":
-		return false, errWinner
-	case "loser":
-		return false, errLoser
-	default:
-		return false, nil
-	}
+	return StrToUpdate(resp.msg)
 }
 
 func requestPlaceCards(cards []cardutils.Card) (bool, error) {

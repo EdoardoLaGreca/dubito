@@ -24,8 +24,10 @@ var connectedPlayers int
 var joinedPlayers []*player = make([]*player, 0)
 var currentTurn int = 0
 var currentRank cardutils.Rank
-
 var lastPlacedCards []cardutils.Card
+
+// mutex for global variables
+var globVarMutex sync.Mutex
 
 func getPlayerByConn(conn net.Conn) (int, *player) {
 	repeat := false
@@ -145,6 +147,8 @@ msgLoop:
 			continue
 		}
 
+		globVarMutex.Lock()
+
 		switch fields[0] {
 		case "join":
 			if !hasJoined {
@@ -201,21 +205,31 @@ msgLoop:
 					cardsStr = strings.TrimSuffix(cardsStr, ",")
 					netutils.SendMsg(conn, cardsStr)
 
-				case "my-turn":
+				case "update":
+					// construct the update response string
+					var udResp string
+
+					// first line
 					winner := checkWin()
 					if winner == nil {
-						if checkPlayerTurn(p) {
-							netutils.SendMsg(conn, "yes")
-						} else {
-							netutils.SendMsg(conn, "no")
-						}
+						udResp += "u\n"
 					} else {
-						if p == winner {
-							netutils.SendMsg(conn, "winner")
+						if winner == p {
+							udResp = "y\nn\n1 ace"
 						} else {
-							netutils.SendMsg(conn, "loser")
+							udResp = "n\nn\n1 ace"
 						}
+						continue
 					}
+
+					if checkPlayerTurn(p) {
+						udResp += "y\n"
+					} else {
+						udResp += "n\n"
+					}
+
+					udResp += strconv.Itoa(len(lastPlacedCards)) + " " + cardutils.RankToString(currentRank)
+
 				default:
 					log.Println("invalid request from " + fmtPlayerName(p) + ": \"" + msg + "\"")
 				}
@@ -281,6 +295,8 @@ msgLoop:
 		default:
 			log.Println("invalid request from " + fmtPlayerName(p) + ": \"" + msg + "\"")
 		}
+
+		globVarMutex.Unlock()
 	}
 }
 
