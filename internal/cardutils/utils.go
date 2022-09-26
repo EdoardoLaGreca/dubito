@@ -39,6 +39,43 @@ const (
 	King
 )
 
+func RankByName(name string) (Rank, error) {
+	var r Rank
+
+	switch name {
+	case "ace":
+		r = Ace
+	case "two":
+		r = Two
+	case "three":
+		r = Three
+	case "four":
+		r = Four
+	case "five":
+		r = Five
+	case "six":
+		r = Six
+	case "seven":
+		r = Seven
+	case "eight":
+		r = Eight
+	case "nine":
+		r = Nine
+	case "ten":
+		r = Ten
+	case "jack":
+		r = Jack
+	case "queen":
+		r = Queen
+	case "king":
+		r = King
+	default:
+		return 0, fmt.Errorf("unknown rank in " + name)
+	}
+
+	return r, nil
+}
+
 // e.g. "five clubs" or "queen spades"
 func CardByName(name string) (Card, error) {
 	nameSp := strings.Fields(name)
@@ -48,36 +85,11 @@ func CardByName(name string) (Card, error) {
 
 	var c Card
 
-	switch rankStr {
-	case "ace":
-		c.Rank = Ace
-	case "two":
-		c.Rank = Two
-	case "three":
-		c.Rank = Three
-	case "four":
-		c.Rank = Four
-	case "five":
-		c.Rank = Five
-	case "six":
-		c.Rank = Six
-	case "seven":
-		c.Rank = Seven
-	case "eight":
-		c.Rank = Eight
-	case "nine":
-		c.Rank = Nine
-	case "ten":
-		c.Rank = Ten
-	case "jack":
-		c.Rank = Jack
-	case "queen":
-		c.Rank = Queen
-	case "king":
-		c.Rank = King
-	default:
-		return Card{}, fmt.Errorf("unknown rank in " + name)
+	r, err := RankByName(rankStr)
+	if err != nil {
+		return Card{}, err
 	}
+	c.Rank = r
 
 	switch suitStr {
 	case "clubs":
