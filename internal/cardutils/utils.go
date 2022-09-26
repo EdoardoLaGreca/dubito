@@ -107,37 +107,43 @@ func CardByName(name string) (Card, error) {
 	return c, nil
 }
 
-func CardToString(c Card) (name string) {
-	switch c.Rank {
+func RankToString(r Rank) string {
+	var s string
+
+	switch r {
 	case Ace:
-		name += "ace"
+		s = "ace"
 	case Two:
-		name += "two"
+		s = "two"
 	case Three:
-		name += "three"
+		s = "three"
 	case Four:
-		name += "four"
+		s = "four"
 	case Five:
-		name += "five"
+		s = "five"
 	case Six:
-		name += "six"
+		s = "six"
 	case Seven:
-		name += "seven"
+		s = "seven"
 	case Eight:
-		name += "eight"
+		s = "eight"
 	case Nine:
-		name += "nine"
+		s = "nine"
 	case Ten:
-		name += "ten"
+		s = "ten"
 	case Jack:
-		name += "jack"
+		s = "jack"
 	case Queen:
-		name += "queen"
+		s = "queen"
 	case King:
-		name += "king"
+		s = "king"
 	}
 
-	name += " "
+	return s
+}
+
+func CardToString(c Card) (name string) {
+	name += RankToString(c.Rank) + " "
 
 	switch c.Suit {
 	case Clubs:
