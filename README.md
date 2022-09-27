@@ -69,6 +69,10 @@ go run ./cmd/client
 go run ./cmd/server
 ```
 
+## Documentation
+
+See the `docs` directory.
+
 ## Credits
 
 Thanks to [**mehrasaur**](https://opengameart.org/users/mehrasaur) from [opengameart.org](https://opengameart.org) for card and deck assets. [Download page](https://opengameart.org/content/playing-card-assets-52-cards-deck-chips).
