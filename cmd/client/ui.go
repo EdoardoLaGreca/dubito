@@ -184,6 +184,25 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 		}
 	})
 
+	btnDubito := widget.NewButton("Dubito!", func() {
+		tableCards, err := requestDubito()
+		if err != nil {
+			dialog.ShowError(err, w)
+			return
+		}
+
+		if tableCards == nil {
+			dialog.ShowInformation("Correct!", "You doubted well! :)", w)
+		} else {
+			dialog.ShowInformation("Wrong!", "You doubted wrong... :(", w)
+
+			// add cards
+			cardsCont = newCardsCont(w, lblSelectedCards, append(cards, tableCards...))
+			cardsCont.Refresh()
+		}
+
+	})
+
 	btnPlace.Hide()
 
 	btnLeave := widget.NewButton("Leave", func() {
@@ -191,7 +210,7 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 		w.SetContent(getMenuContainer(w))
 	})
 
-	return container.New(layout.NewVBoxLayout(), playersCont, lastCardCont, cardsCont, lblSelectedCards, btnPlace, btnLeave)
+	return container.New(layout.NewVBoxLayout(), playersCont, lastCardCont, cardsCont, lblSelectedCards, btnPlace, btnDubito, btnLeave)
 }
 
 func getMenuContainer(w fyne.Window) *fyne.Container {
