@@ -97,32 +97,10 @@ func updateJoinedCount(label *widget.Label, joinedPlayers, maxPlayers uint) {
 	label.SetText(strconv.Itoa(int(joinedPlayers)) + "/" + strconv.Itoa(int(maxPlayers)) + " joined")
 }
 
-func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *fyne.Container {
-	cnvPlayers := make([]fyne.CanvasObject, len(players))
-	for i := range players {
-		cnvPlayers[i] = canvas.NewText(players[i], color.RGBA{R: 200, G: 200, B: 200, A: 255})
-	}
-
-	// Set first player
-	cnvPlayers[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 255, B: 0, A: 255}
-
-	playersCont := container.New(layout.NewHBoxLayout(), cnvPlayers...)
-
-	// initially, the last card is the deck style
-	img, err := assets.GetDeckAsset(deckStyle)
-	if err != nil {
-		dialog.ShowError(err, w)
-	}
-
-	lastCardPlaced := canvas.NewImageFromImage(img)
-	lastCardPlaced.FillMode = canvas.ImageFillContain
-	lastCardPlaced.SetMinSize(fyne.NewSize(100.0, 200.0))
-	lastCardCont := container.New(layout.NewBorderLayout(nil, nil, nil, nil), lastCardPlaced)
-
+// create a cards container
+func newCardsCont(w fyne.Window, lblSelectedCards *widget.Label, cards []cardutils.Card) *fyne.Container {
 	// use a grid layout of 1 row to divide the horizontal space in equal parts
 	cardsCont := container.New(layout.NewGridWrapLayout(fyne.NewSize(40.0, 80.0)))
-
-	lblSelectedCards := widget.NewLabel("You selected 0 cards")
 
 	for _, c := range cards {
 		img, err := assets.GetCardAsset(c)
@@ -163,6 +141,35 @@ func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *
 
 		cardsCont.Add(clickableImg)
 	}
+
+	return cardsCont
+}
+
+func getGameContainer(w fyne.Window, players []string, cards []cardutils.Card) *fyne.Container {
+	cnvPlayers := make([]fyne.CanvasObject, len(players))
+	for i := range players {
+		cnvPlayers[i] = canvas.NewText(players[i], color.RGBA{R: 200, G: 200, B: 200, A: 255})
+	}
+
+	// Set first player
+	cnvPlayers[0].(*canvas.Text).Color = color.RGBA{R: 0, G: 255, B: 0, A: 255}
+
+	playersCont := container.New(layout.NewHBoxLayout(), cnvPlayers...)
+
+	// initially, the last card is the deck style
+	img, err := assets.GetDeckAsset(deckStyle)
+	if err != nil {
+		dialog.ShowError(err, w)
+	}
+
+	lastCardPlaced := canvas.NewImageFromImage(img)
+	lastCardPlaced.FillMode = canvas.ImageFillContain
+	lastCardPlaced.SetMinSize(fyne.NewSize(100.0, 200.0))
+	lastCardCont := container.New(layout.NewBorderLayout(nil, nil, nil, nil), lastCardPlaced)
+
+	lblSelectedCards := widget.NewLabel("You selected 0 cards")
+
+	cardsCont := newCardsCont(w, lblSelectedCards, cards)
 
 	btnPlace := widget.NewButton("Place cards", func() {
 		if len(selectedCards) == 0 {
