@@ -24,6 +24,7 @@ var connectedPlayers int
 var joinedPlayers []*player = make([]*player, 0)
 var currentTurn int = 0
 var currentRank cardutils.Rank
+var placedCards []cardutils.Card
 var lastPlacedCards []cardutils.Card
 
 // mutex for global variables
@@ -257,6 +258,7 @@ msgLoop:
 						// check if the player have those cards
 						if checkPlayerHasCards(p, cards) {
 							// place the cards
+							placedCards = append(placedCards, cards...)
 							lastPlacedCards = cards
 							netutils.SendMsg(conn, "ok")
 							currentTurn++
