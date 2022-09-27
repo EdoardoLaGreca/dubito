@@ -257,7 +257,7 @@ func newGame(w fyne.Window) {
 		return
 	}
 
-	w.SetTitle("Dubito | In game as " + username)
+	w.SetTitle("Dubito | in game as " + username)
 
 	maxPlayers, err := requestMaxPlayers()
 	if err != nil {
