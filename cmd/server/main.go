@@ -279,7 +279,8 @@ msgLoop:
 				// send "right" if last player lied, "wrong" otherwise
 				if checkLastPlacedCards(currentRank) {
 					// last player didn't lie
-					netutils.SendMsg(conn, "wrong")
+					response := "wrong\n" + strings.Join(cardutils.CardsToString(placedCards), ",")
+					netutils.SendMsg(conn, response)
 
 					// repeat the turn for the last player
 					currentTurn--

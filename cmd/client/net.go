@@ -267,26 +267,42 @@ func requestPlaceCards(cards []cardutils.Card) (bool, error) {
 	return true, nil
 }
 
-// return true if the doubt was correct (last player lied)
-func requestDubito() (bool, error) {
+// return nil if the doubt was correct (last player lied), otherwise return the array of cards currently in the table
+// the response message is structured as follows:
+// [right/wrong whether the player doubted right or not]\n
+// [list of cards (separated by commas) in case the player doubted wrong]
+func requestDubito() ([]cardutils.Card, error) {
 	netMutex.Lock()
 	defer netMutex.Unlock()
 
 	err := netutils.SendMsg(conn, "dubito")
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	resp := <-recvChan
 	if resp.err != nil {
-		return false, resp.err
+		return nil, resp.err
 	}
 
-	if resp.msg == "right" {
-		return true, nil
+	cards := make([]cardutils.Card, 0)
+	respLines := strings.Split(resp.msg, "\n")
+
+	if respLines[0] == "right" {
+		return nil, nil
+	} else {
+		cardsStr := strings.Split(respLines[1], ",")
+		for _, c := range cardsStr {
+			c, err := cardutils.CardByName(c)
+			if err != nil {
+				return nil, err
+			}
+
+			cards = append(cards, c)
+		}
 	}
 
-	return false, nil
+	return cards, nil
 }
 
 func requestLeave() error {
